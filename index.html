@@ -52,7 +52,7 @@
                     : 'https://pravatar.cc';
             }
 
-            // Create custom map marker icon
+          // FIXED: Added pixel size arrays so Leaflet can actually compute the pin scales
             const customIcon = L.divIcon({
                 html: `<img src="${iconUrl}" class="reviewer-avatar" width="42" height="42" title="${shop.reviewer}'s Review">`,
                 className: 'custom-marker',
