@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cairns Pie Reviews</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; height: 100vh; overflow: hidden; background: #1a1a1a; }
+        
+        /* Left Sidebar - Leaderboard Styling */
+        #sidebar { 
+            width: 380px; 
+            min-width: 320px;
+            background: #222; 
+            color: #fff; 
+            padding: 20px; 
+            box-shadow: 4px 0 10px rgba(0,0,0,0.5); 
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            border-right: 3px solid #8B4513;
+        }
+
+        .header-title { 
+            text-align: center; 
+            font-size: 22px; 
+            font-weight: 900; 
+            letter-spacing: 1px;
+            color: #f5f5f5;
+            margin: 0 0 5px 0;
+            text-transform: uppercase;
+        }
+
+        .leaderboard-title { 
+            text-align: center; 
+            font-size: 28px; 
+            font-weight: 800; 
+            color: #ffcc00; 
+            border-bottom: 2px dashed #444; 
+            padding-bottom: 10px; 
+            margin-bottom: 15px; 
+            text-transform: uppercase;
+        }
+
+        /* Static Leaderboard List */
+        .leaderboard-list { list-style: none; padding: 0; margin: 0; }
+        .leaderboard-item { 
+            display: flex; 
+            align-items: center; 
+            background: #2b2b2b; 
+            margin-bottom: 10px; 
+            padding: 10px; 
+            border-radius: 6px; 
+            border-left: 5px solid #555;
+        }
+        .leaderboard-item.rank-1 { border-left-color: #ffcc00; background: #332b00; }
+        
+        .rank { font-size: 20px; font-weight: bold; width: 30px; text-align: center; color: #ffcc00; }
+        .shop-name { flex-grow: 1; font-weight: 600; padding-left: 10px; font-size: 15px; }
+        .score { font-size: 18px; font-weight: bold; color: #ffcc00; padding-right: 5px; }
+
+        /* Map Container */
+        #map { flex-grow: 1; height: 100vh; }
+
+        .reviewer-avatar { 
+            border-radius: 50%; 
+            border: 3px solid white; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3); 
+            transition: transform 0.2s; 
+            object-fit: cover;
+        }
+        .reviewer-avatar:hover { transform: scale(1.15); z-index: 1000; }
+        .popup-card { font-size: 14px; line-height: 1.4; width: 220px; color: #333; }
+        .popup-card h3 { margin: 0 0 5px 0; color: #8B4513; border-bottom: 1px solid #ddd; padding-bottom: 4px; font-size: 16px; }
+        .score-tag { display: inline-block; background: #f0f0f0; padding: 4px 8px; border-radius: 4px; margin-top: 6px; font-weight: bold; }
+
+        /* Mobile layout adjustment */
+        @media (max-width: 768px) {
+            body { flex-direction: column; }
+            #sidebar { width: 100%; height: 40vh; min-width: auto; }
+            #map { height: 60vh; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Static Leaderboard Section -->
+    <div id="sidebar">
+        <div class="header-title">Cairns Pie Reviews</div>
+        <div class="leaderboard-title">Leaderboard</div>
+
+        <ul class="leaderboard-list">
+            <li class="leaderboard-item rank-1">
+                <span class="rank">1</span>
+                <span class="shop-name">Bushman Pies</span>
+                <span class="score">7.8 👑</span>
+            </li>
+            <li class="leaderboard-item">
+                <span class="rank">2</span>
+                <span class="shop-name">Ocean World Seafood</span>
+                <span class="score">5.2</span>
+            </li>
+            <li class="leaderboard-item"><span class="rank">3</span><span class="shop-name">---</span></li>
+            <li class="leaderboard-item"><span class="rank">4</span><span class="shop-name">---</span></li>
+            <li class="leaderboard-item"><span class="rank">5</span><span class="shop-name">---</span></li>
+        </ul>
+    </div>
+
+    <!-- Map Section -->
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        const map = L.map('map').setView([-16.920, 145.755], 13);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        const pieShops = [
+            { name: "Ocean World Seafood", lat: -16.903171, lng: 145.757099, reviewer: "Darien", fingersDeep: 3, crust: 7.3, filling: 3.1, overall: 5.2, pie: "Curried Scallop Pie"},
+            { name: "Bushman Pies", lat: -16.938892, lng: 145.754252, reviewer: "Darien", fingersDeep: 2, crust: 7.4, filling: 7.4, overall: 7.8, pie: "Tradies Pie" }
+        ];
+
+        pieShops.forEach(shop => {
+            const iconUrl = shop.overall >= 7.0 
+                ? 'https://i.pravatar.cc/150?img=68' 
+                : 'https://i.pravatar.cc/150?img=12';
+
+            const customIcon = L.divIcon({
+                html: `<img src="${iconUrl}" class="reviewer-avatar" width="42" height="42" title="${shop.reviewer}'s Review">`,
+                className: 'custom-marker',
+                iconSize: [42, 42],
+                iconAnchor: [21, 21]
+            });
+
+            const popupContent = `
+                <div class="popup-card">
+                    <h3>${shop.name}</h3>
+                    <strong>Reviewer:</strong> ${shop.reviewer}<br>
+                    <strong>Pie:</strong> ${shop.pie}<br>
+                    <hr style="border:0; border-top:1px dashed #ccc; margin:8px 0;">
+                    🥧 <strong>Crust:</strong> ${shop.crust}/10<br>
+                    🥩 <strong>Filling:</strong> ${shop.filling}/10<br>
+                    ✌️ <strong>Fingers Deep:</strong> ${shop.fingersDeep}<br>
+                    <div class="score-tag" style="color: ${shop.overall >= 7 ? '#2e7d32' : '#c62828'}">
+                        ⭐ Overall: ${shop.overall}/10
+                    </div>
+                </div>
+            `;
+
+            L.marker([shop.lat, shop.lng], { icon: customIcon })
+                .addTo(map)
+                .bindPopup(popupContent);
+        });
+    </script>
+</body>
+</html>
