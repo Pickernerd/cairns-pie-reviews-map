@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cairns Pie Review Overlay</title>
+    <!-- Include Leaflet Maps CSS -->
+    <link rel="stylesheet" href="https://unpkg.com" />
+    <style>
+        body { margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        #map { width: 100vw; height: 100vh; }
+        .reviewer-avatar { border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3); transition: transform 0.2s; }
+        .reviewer-avatar:hover { transform: scale(1.15); z-index: 1000; }
+        .popup-card { font-size: 14px; line-height: 1.4; }
+        .popup-card h3 { margin: 0 0 5px 0; color: #8B4513; border-bottom: 1px solid #ddd; padding-bottom: 4px; }
+        .score-tag { display: inline-block; background: #f0f0f0; padding: 2px 6px; border-radius: 4px; margin-top: 4px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div id="map"></div>
+
+    <!-- Include Leaflet Maps JavaScript Library -->
+    <script src="https://unpkg.com"></script>
+    <script>
+        // Initialize the map focused on Cairns region
+        const map = L.map('map').setView([-16.930, 145.762], 13);
+
+        // Load free OpenStreetMap map tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Your pie review dataset
+        const pieShops = [
+            { name: "Ocean World Seafood", lat: -16.903171, lng: 145.757099, reviewer: "Darien", Fingers deep: 3, Crust: 7.3, Filling: 3.1, Overall: 5.2, pie: "Curried Scallop Pie"},
+            { name: "Bushman Pies", lat: -16.938892, lng: 145.754252, reviewer: "Darien", Fingers deep: 2, Crust: 7.4, Filling: 7.4, Overall: 7.8, pie: "Tradies Pie" },
+            
+        ];
+
+       // Loop through each pie shop row programmatically
+        pieShops.forEach(shop => {
+            // Programmatically calculate the overall average score
+            const averageScore = ((shop.crust + shop.filling) / 2).toFixed(1);
+            
+            let iconUrl = '';
+
+            // Dynamic logic: Choose face based on reviewer name AND their calculated average score
+            if (shop.reviewer === "John") {
+                iconUrl = averageScore >= 7.0 
+                    ? 'https://pravatar.cc'  // Happy John
+                    : 'https://pravatar.cc'; // Sad John
+            } else {
+                iconUrl = averageScore >= 7.0 
+                    ? 'https://pravatar.cc'  // Happy Jane
+                    : 'https://pravatar.cc'; // Sad Jane
+            }
+
+            // Create the custom circular map icon using the image URL
+            const customIcon = L.divIcon({
+                html: `<img src="${iconUrl}" class="reviewer-avatar" width="42" height="42" title="${shop.reviewer}'s Review">`,
+                className: 'custom-marker',
+                iconSize:,
+                iconAnchor: [21, 21]
+            });
+
+            // Format the HTML content that displays inside the popup card
+            const popupContent = `
+                <div class="popup-card">
+                    <h3>${shop.name}</h3>
+                    <strong>Reviewer:</strong> ${shop.reviewer}<br>
+                    <strong>Pie Variant:</strong> ${shop.pie}<br>
+                    <hr style="border:0; border-top:1px dashed #ccc; margin:8px 0;">
+                    🥧 <strong>Crust Score:</strong> ${shop.crust}/10<br>
+                    🥩 <strong>Filling Score:</strong> ${shop.filling}/10<br>
+                    <div class="score-tag" style="color: ${averageScore >= 7 ? '#2e7d32' : '#c62828'}">
+                        ⭐ Overall: ${averageScore}/10
+                    </div>
+                </div>
+            `;
+
+            // Add the marker to the map screen with the layout template
+            L.marker([shop.lat, shop.lng], { icon: customIcon })
+                .addTo(map)
+                .bindPopup(popupContent);
+        });
+    </script>
+</body>
+</html>
