@@ -9,7 +9,6 @@
         * { box-sizing: border-box; }
         body { margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; height: 100vh; overflow: hidden; background: #1a1a1a; }
         
-        /* Left Sidebar - Leaderboard Styling */
         #sidebar { 
             width: 380px; 
             min-width: 320px;
@@ -44,7 +43,6 @@
             text-transform: uppercase;
         }
 
-        /* Static Leaderboard List */
         .leaderboard-list { list-style: none; padding: 0; margin: 0; }
         .leaderboard-item { 
             display: flex; 
@@ -61,22 +59,21 @@
         .shop-name { flex-grow: 1; font-weight: 600; padding-left: 10px; font-size: 15px; }
         .score { font-size: 18px; font-weight: bold; color: #ffcc00; padding-right: 5px; }
 
-        /* Map Container */
         #map { flex-grow: 1; height: 100vh; }
 
         .reviewer-avatar { 
-            border-radius: 50%; 
-            border: 3px solid white; 
+            border-radius: 6px;
+            border: 2px solid white; 
             box-shadow: 0 2px 5px rgba(0,0,0,0.3); 
             transition: transform 0.2s; 
             object-fit: cover;
         }
         .reviewer-avatar:hover { transform: scale(1.15); z-index: 1000; }
+
         .popup-card { font-size: 14px; line-height: 1.4; width: 220px; color: #333; }
         .popup-card h3 { margin: 0 0 5px 0; color: #8B4513; border-bottom: 1px solid #ddd; padding-bottom: 4px; font-size: 16px; }
         .score-tag { display: inline-block; background: #f0f0f0; padding: 4px 8px; border-radius: 4px; margin-top: 6px; font-weight: bold; }
 
-        /* Mobile layout adjustment */
         @media (max-width: 768px) {
             body { flex-direction: column; }
             #sidebar { width: 100%; height: 40vh; min-width: auto; }
@@ -86,7 +83,6 @@
 </head>
 <body>
 
-    <!-- Static Leaderboard Section -->
     <div id="sidebar">
         <div class="header-title">Cairns Pie Reviews</div>
         <div class="leaderboard-title">Leaderboard</div>
@@ -108,7 +104,6 @@
         </ul>
     </div>
 
-    <!-- Map Section -->
     <div id="map"></div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -120,20 +115,40 @@
         }).addTo(map);
 
         const pieShops = [
-            { name: "Ocean World Seafood", lat: -16.903171, lng: 145.757099, reviewer: "Darien", fingersDeep: 3, crust: 7.3, filling: 3.1, overall: 5.2, pie: "Curried Scallop Pie"},
-            { name: "Bushman Pies", lat: -16.938892, lng: 145.754252, reviewer: "Darien", fingersDeep: 2, crust: 7.4, filling: 7.4, overall: 7.8, pie: "Tradies Pie" }
+            { 
+                name: "Ocean World Seafood",
+                lat: -16.903171,
+                lng: 145.757099,
+                reviewer: "Darien",
+                image: "OceanWorld",
+                fingersDeep: 3,
+                crust: 7.3,
+                filling: 3.1,
+                overall: 5.2,
+                pie: "Curried Scallop Pie"
+            },
+            { 
+                name: "Bushman Pies",
+                lat: -16.938892,
+                lng: 145.754252,
+                reviewer: "Darien",
+                image: "Bushmans",
+                fingersDeep: 2,
+                crust: 7.4,
+                filling: 7.4,
+                overall: 7.8,
+                pie: "Tradies Pie"
+            }
         ];
 
         pieShops.forEach(shop => {
-            const iconUrl = shop.overall >= 7.0 
-                ? 'https://i.pravatar.cc/150?img=68' 
-                : 'https://i.pravatar.cc/150?img=12';
+            const iconUrl = `${shop.image}_${shop.reviewer}.png`;
 
             const customIcon = L.divIcon({
-                html: `<img src="${iconUrl}" class="reviewer-avatar" width="42" height="42" title="${shop.reviewer}'s Review">`,
+                html: `<img src="${iconUrl}" class="reviewer-avatar" width="50" height="100" title="${shop.reviewer}'s Review">`,
                 className: 'custom-marker',
-                iconSize: [42, 42],
-                iconAnchor: [21, 21]
+                iconSize: [50, 100],
+                iconAnchor: [25, 50]
             });
 
             const popupContent = `
