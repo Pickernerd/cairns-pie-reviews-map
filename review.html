@@ -69,6 +69,32 @@
             object-fit: cover;
         }
         .reviewer-avatar:hover { transform: scale(1.15); z-index: 1000; }
+        
+         .custom-marker {
+    position: relative;
+}
+
+.marker-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 22%; /* bottom fifth */
+    background: rgba(0,0,0,0.55);
+    color: #fff;
+    font-size: 12px;
+    font-weight: bold;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 2px 4px;
+    border-radius: 0 0 6px 6px;
+}
+
+.leader-gold {
+    border: 3px solid gold !important;
+    box-shadow: 0 0 10px gold;
+}
 
         .popup-card { font-size: 14px; line-height: 1.4; width: 220px; color: #333; }
         .popup-card h3 { margin: 0 0 5px 0; color: #8B4513; border-bottom: 1px solid #ddd; padding-bottom: 4px; font-size: 16px; }
@@ -141,35 +167,54 @@
             }
         ];
 
-        pieShops.forEach(shop => {
-            const iconUrl = `${shop.image}_${shop.reviewer}.png`;
+// Determine the highest score dynamically
+const leaderScore = Math.max(...pieShops.map(s => s.overall));
 
-            const customIcon = L.divIcon({
-                html: `<img src="${iconUrl}" class="reviewer-avatar" width="50" height="100" title="${shop.reviewer}'s Review">`,
-                className: 'custom-marker',
-                iconSize: [50, 100],
-                iconAnchor: [25, 50]
-            });
+pieShops.forEach(shop => {
+    const iconUrl = `${shop.image}_${shop.reviewer}.png`;
 
-            const popupContent = `
-                <div class="popup-card">
-                    <h3>${shop.name}</h3>
-                    <strong>Reviewer:</strong> ${shop.reviewer}<br>
-                    <strong>Pie:</strong> ${shop.pie}<br>
-                    <hr style="border:0; border-top:1px dashed #ccc; margin:8px 0;">
-                    🥧 <strong>Crust:</strong> ${shop.crust}/10<br>
-                    🥩 <strong>Filling:</strong> ${shop.filling}/10<br>
-                    ✌️ <strong>Fingers Deep:</strong> ${shop.fingersDeep}<br>
-                    <div class="score-tag" style="color: ${shop.overall >= 7 ? '#2e7d32' : '#c62828'}">
-                        ⭐ Overall: ${shop.overall}/10
-                    </div>
+    // Gold border if this shop is the leader
+    const borderClass = shop.overall === leaderScore ? "leader-gold" : "";
+
+    const customIcon = L.divIcon({
+        html: `
+            <div style="position:relative; width:50px; height:100px;">
+                <img src="${iconUrl}" 
+                     class="reviewer-avatar ${borderClass}" 
+                     width="50" height="100" 
+                     title="${shop.reviewer}'s Review">
+
+                <div class="marker-overlay">
+                    <span>${shop.overall}</span>
+                    <span>ⓘ</span>
                 </div>
-            `;
+            </div>
+        `,
+        className: 'custom-marker',
+        iconSize: [50, 100],
+        iconAnchor: [25, 50]
+    });
 
-            L.marker([shop.lat, shop.lng], { icon: customIcon })
-                .addTo(map)
-                .bindPopup(popupContent);
-        });
+    const popupContent = `
+        <div class="popup-card">
+            <h3>${shop.name}</h3>
+            <strong>Reviewer:</strong> ${shop.reviewer}<br>
+            <strong>Pie:</strong> ${shop.pie}<br>
+            <hr style="border:0; border-top:1px dashed #ccc; margin:8px 0;">
+            🥧 <strong>Crust:</strong> ${shop.crust}/10<br>
+            🥩 <strong>Filling:</strong> ${shop.filling}/10<br>
+            ✌️ <strong>Fingers Deep:</strong> ${shop.fingersDeep}<br>
+            <div class="score-tag" style="color: ${shop.overall >= 7 ? '#2e7d32' : '#c62828'}">
+                ⭐ Overall: ${shop.overall}/10
+            </div>
+        </div>
+    `;
+
+    L.marker([shop.lat, shop.lng], { icon: customIcon })
+        .addTo(map)
+        .bindPopup(popupContent);
+});
+
     </script>
 </body>
 </html>
