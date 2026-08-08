@@ -4,11 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cairns Pie Reviews</title>
+
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
     <style>
         * { box-sizing: border-box; }
         body { margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; height: 100vh; overflow: hidden; background: #1a1a1a; }
-        
+
+        /* Sidebar */
         #sidebar { 
             width: 380px; 
             min-width: 320px;
@@ -54,48 +57,52 @@
             border-left: 5px solid #555;
         }
         .leaderboard-item.rank-1 { border-left-color: #ffcc00; background: #332b00; }
-        
+
         .rank { font-size: 20px; font-weight: bold; width: 30px; text-align: center; color: #ffcc00; }
         .shop-name { flex-grow: 1; font-weight: 600; padding-left: 10px; font-size: 15px; }
         .score { font-size: 18px; font-weight: bold; color: #ffcc00; padding-right: 5px; }
 
         #map { flex-grow: 1; height: 100vh; }
 
+        /* Reviewer image */
         .reviewer-avatar { 
             border-radius: 6px;
             border: 2px solid white; 
             box-shadow: 0 2px 5px rgba(0,0,0,0.3); 
-            transition: transform 0.2s; 
             object-fit: cover;
         }
-        .reviewer-avatar:hover { transform: scale(1.15); z-index: 1000; }
-        
-         .custom-marker {
-    position: relative;
-}
 
-.marker-overlay {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 22%; /* bottom fifth */
-    background: rgba(0,0,0,0.55);
-    color: #fff;
-    font-size: 12px;
-    font-weight: bold;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 2px 4px;
-    border-radius: 0 0 6px 6px;
-}
+        /* Gold surround for leader */
+        .leader-gold {
+            border: 3px solid gold !important;
+            box-shadow: 0 0 10px gold;
+        }
 
-.leader-gold {
-    border: 3px solid gold !important;
-    box-shadow: 0 0 10px gold;
-}
+        /* Physics-enabled marker */
+        .marker-physics {
+            transform-origin: bottom center;
+            transition: transform 1.5s cubic-bezier(0.20, 0.80, 0.30, 1.00);
+        }
 
+        /* Bottom overlay */
+        .marker-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 22%;
+            background: rgba(0,0,0,0.55);
+            color: #fff;
+            font-size: 12px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 2px 4px;
+            border-radius: 0 0 6px 6px;
+        }
+
+        /* Popup */
         .popup-card { font-size: 14px; line-height: 1.4; width: 220px; color: #333; }
         .popup-card h3 { margin: 0 0 5px 0; color: #8B4513; border-bottom: 1px solid #ddd; padding-bottom: 4px; font-size: 16px; }
         .score-tag { display: inline-block; background: #f0f0f0; padding: 4px 8px; border-radius: 4px; margin-top: 6px; font-weight: bold; }
@@ -107,6 +114,7 @@
         }
     </style>
 </head>
+
 <body>
 
     <div id="sidebar">
@@ -133,6 +141,7 @@
     <div id="map"></div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
     <script>
         const map = L.map('map').setView([-16.920, 145.755], 13);
 
@@ -140,6 +149,7 @@
             attribution: '© OpenStreetMap contributors'
         }).addTo(map);
 
+        /* Pie shop data */
         const pieShops = [
             { 
                 name: "Ocean World Seafood",
@@ -167,69 +177,95 @@
             }
         ];
 
-// Determine the highest score dynamically
-const leaderScore = Math.max(...pieShops.map(s => s.overall));
+        const leaderScore = Math.max(...pieShops.map(s => s.overall));
+        const pieShopsMarkers = [];
 
-pieShops.forEach(shop => {
-    const iconUrl = `${shop.image}_${shop.reviewer}.png`;
+        pieShops.forEach(shop => {
+            const iconUrl = `${shop.image}_${shop.reviewer}.png`;
+            const borderClass = shop.overall === leaderScore ? "leader-gold" : "";
 
-    // Gold border if this shop is the leader
-    const borderClass = shop.overall === leaderScore ? "leader-gold" : "";
+            const customIcon = L.divIcon({
+                html: `
+                    <div style="position:relative; width:50px; height:100px;">
+                        <img src="${iconUrl}" class="reviewer-avatar ${borderClass}" width="50" height="100">
 
-    const customIcon = L.divIcon({
-        html: `
-            <div style="position:relative; width:50px; height:100px;">
-                <img src="${iconUrl}" 
-                     class="reviewer-avatar ${borderClass}" 
-                     width="50" height="100" 
-                     title="${shop.reviewer}'s Review">
-
-                <div class="marker-overlay">
-                    <span>${shop.overall}</span>
-                    <div class="marker-overlay">
-                    <span>${shop.overall}</span>
-                    <span style="
-                        display:inline-block;
-                        width:16px;
-                        height:16px;
-                        border-radius:50%;
-                        background:#ffcc00;
-                        color:#000;
-                        font-size:11px;
-                        font-weight:900;
-                        text-align:center;
-                        line-height:16px;
-                    ">i</span>
+                        <div class="marker-overlay">
+                            <span>${shop.overall}</span>
+                            <span style="
+                                display:inline-block;
+                                width:16px;
+                                height:16px;
+                                border-radius:50%;
+                                background:#ffcc00;
+                                color:#000;
+                                font-size:11px;
+                                font-weight:900;
+                                text-align:center;
+                                line-height:16px;
+                            ">i</span>
+                        </div>
                     </div>
+                `,
+                className: 'custom-marker',
+                iconSize: [50, 100],
+                iconAnchor: [25, 50]
+            });
 
+            const marker = L.marker([shop.lat, shop.lng], { icon: customIcon }).addTo(map);
+
+            const el = marker._icon.querySelector("div");
+            el.classList.add("marker-physics");
+
+            marker.physics = { el, offset: 0 };
+            pieShopsMarkers.push(marker);
+
+            const popupContent = `
+                <div class="popup-card">
+                    <h3>${shop.name}</h3>
+                    <strong>Reviewer:</strong> ${shop.reviewer}<br>
+                    <strong>Pie:</strong> ${shop.pie}<br>
+                    <hr style="border:0; border-top:1px dashed #ccc; margin:8px 0;">
+                    🥧 <strong>Crust:</strong> ${shop.crust}/10<br>
+                    🥩 <strong>Filling:</strong> ${shop.filling}/10<br>
+                    ✌️ <strong>Fingers Deep:</strong> ${shop.fingersDeep}<br>
+                    <div class="score-tag" style="color: ${shop.overall >= 7 ? '#2e7d32' : '#c62828'}">
+                        ⭐ Overall: ${shop.overall}/10
+                    </div>
                 </div>
-            </div>
-        `,
-        className: 'custom-marker',
-        iconSize: [50, 100],
-        iconAnchor: [25, 50]
-    });
+            `;
 
-    const popupContent = `
-        <div class="popup-card">
-            <h3>${shop.name}</h3>
-            <strong>Reviewer:</strong> ${shop.reviewer}<br>
-            <strong>Pie:</strong> ${shop.pie}<br>
-            <hr style="border:0; border-top:1px dashed #ccc; margin:8px 0;">
-            🥧 <strong>Crust:</strong> ${shop.crust}/10<br>
-            🥩 <strong>Filling:</strong> ${shop.filling}/10<br>
-            ✌️ <strong>Fingers Deep:</strong> ${shop.fingersDeep}<br>
-            <div class="score-tag" style="color: ${shop.overall >= 7 ? '#2e7d32' : '#c62828'}">
-                ⭐ Overall: ${shop.overall}/10
-            </div>
-        </div>
-    `;
+            marker.bindPopup(popupContent);
+        });
 
-    L.marker([shop.lat, shop.lng], { icon: customIcon })
-        .addTo(map)
-        .bindPopup(popupContent);
-});
+        /* Physics drag resistance */
+        let lastLng;
 
+        map.on("drag", () => {
+            const center = map.getCenter();
+
+            if (lastLng !== undefined) {
+                const dx = (center.lng - lastLng) * 200;
+
+                pieShopsMarkers.forEach(m => {
+                    m.physics.offset = dx * 0.25;
+                    m.physics.el.style.transform =
+                        `translateY(${m.physics.offset}px) rotate(${m.physics.offset * 0.15}deg)`;
+                });
+            }
+
+            lastLng = center.lng;
+        });
+
+        /* Bounce-back animation */
+        map.on("dragend", () => {
+            lastLng = undefined;
+
+            pieShopsMarkers.forEach(m => {
+                m.physics.offset = 0;
+                m.physics.el.style.transform = `translateY(0px) rotate(0deg)`;
+            });
+        });
     </script>
+
 </body>
 </html>
