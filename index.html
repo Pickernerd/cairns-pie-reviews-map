@@ -302,7 +302,7 @@ function buildMarkers(reviews) {
                 <div class="marker-body marker-physics"
                      style="position:relative;width:50px;height:100px;">
 
-                    ${review.featured_image}
+                    <img src="${review.featured_image}" class="reviewer-avatar" style="width:100%; height:100%;">
 
                     <div class="marker-overlay">
                         <span>${review.overall}</span>
@@ -376,12 +376,12 @@ function buildMarkers(reviews) {
                     ⭐ Overall: ${review.overall}/10
                 </div>
 
-                ${
+               ${
                     facebookLink
                         ? `
                         <p>
-                            ${facebookLink}
-                               View Facebook Review
+                            <a href="${facebookLink}" target="_blank" rel="noopener noreferrer">
+                                View Facebook Review
                             </a>
                         </p>
                         `
