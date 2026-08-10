@@ -1,89 +1,258 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cairns Pie Review Overlay</title>
-    <!-- Included complete Leaflet CSS URL -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <style>
-        body { margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        #map { width: 100vw; height: 100vh; }
-        .reviewer-avatar { 
-            border-radius: 50%; 
-            border: 3px solid white; 
-            box-shadow: 0 2px 5px rgba(0,0,0,0.3); 
-            transition: transform 0.2s; 
-            object-fit: cover;
-        }
-        .reviewer-avatar:hover { transform: scale(1.15); z-index: 1000; }
-        .popup-card { font-size: 14px; line-height: 1.4; width: 220px; }
-        .popup-card h3 { margin: 0 0 5px 0; color: #8B4513; border-bottom: 1px solid #ddd; padding-bottom: 4px; font-size: 16px; }
-        .score-tag { display: inline-block; background: #f0f0f0; padding: 4px 8px; border-radius: 4px; margin-top: 6px; font-weight: bold; }
-    </style>
-</head>
-<body>
-    <div id="map"></div>
-    <!-- Included complete Leaflet JS URL -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script>
-        // Initialize the map focused on Cairns region near your locations
-        const map = L.map('map').setView([-16.920, 145.755], 13);
+https://unpkg.com/leaflet@1.9.4/dist/leaflet.js</script>
 
-        // Load free OpenStreetMap map tiles
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors'
-        }).addTo(map);
+<script>
 
-        // Your exact pie review dataset with custom keys
-        const pieShops = [
-            { name: "Ocean World Seafood", lat: -16.903171, lng: 145.757099, reviewer: "Darien", fingersDeep: 3, crust: 7.3, filling: 3.1, overall: 5.2, pie: "Curried Scallop Pie"},
-            { name: "Bushman Pies", lat: -16.938892, lng: 145.754252, reviewer: "Darien", fingersDeep: 2, crust: 7.4, filling: 7.4, overall: 7.8, pie: "Tradies Pie" }
-        ];
+const map = L.map('map').setView([-16.920, 145.755], 13);
 
-        // Loop through each pie shop entry
-        pieShops.forEach(shop => {
-            let iconUrl = '';
+L.tileLayer(
+    'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+    {
+        attribution:
+            '&copy; OpenStreetMap contributors &copy; CARTO',
+        subdomains: 'abcd',
+        maxZoom: 20
+    }
+).addTo(map);
 
-            // Choose face image based on score (using explicit Pravatar image IDs)
-            if (shop.reviewer === "Darien") {
-                iconUrl = shop.overall >= 7.0 
-                    ? 'https://i.pravatar.cc/150?img=68'  // Happy face variant
-                    : 'https://i.pravatar.cc/150?img=12'; // Disappointed face variant
-            } else {
-                iconUrl = shop.overall >= 7.0 
-                    ? 'https://i.pravatar.cc/150?img=33' 
-                    : 'https://i.pravatar.cc/150?img=15';
+let pieShopsMarkers = [];
+
+fetch('reviewdata.json')
+    .then(response => response.json())
+    .then(data => {
+
+        const liveReviews = data.reviews.filter(
+            review => review.review_status === "live"
+        );
+
+        // Get latest review for each business
+        const latestReviews = [];
+
+        data.businesses.forEach(business => {
+
+            const businessReviews = liveReviews
+                .filter(r => r.business_id === business.business_id)
+                .sort(
+                    (a, b) =>
+                        new Date(b.review_date) -
+                        new Date(a.review_date)
+                );
+
+            if (businessReviews.length > 0) {
+
+                latestReviews.push({
+                    ...business,
+                    ...businessReviews[0],
+                    review_count: businessReviews.length
+                });
+
             }
-
-            const customIcon = L.divIcon({
-                html: `<img src="${iconUrl}" class="reviewer-avatar" width="42" height="42" title="${shop.reviewer}'s Review">`,
-                className: 'custom-marker',
-                iconSize: [42, 42],
-                iconAnchor: [21, 21]
-            });
-
-            // Format popup window layout
-            const popupContent = `
-                <div class="popup-card">
-                    <h3>${shop.name}</h3>
-                    <strong>Reviewer:</strong> ${shop.reviewer}<br>
-                    <strong>Pie:</strong> ${shop.pie}<br>
-                    <hr style="border:0; border-top:1px dashed #ccc; margin:8px 0;">
-                    🥧 <strong>Crust:</strong> ${shop.crust}/10<br>
-                    🥩 <strong>Filling:</strong> ${shop.filling}/10<br>
-                    ✌️ <strong>Fingers Deep:</strong> ${shop.fingersDeep}<br>
-                    <div class="score-tag" style="color: ${shop.overall >= 7 ? '#2e7d32' : '#c62828'}">
-                        ⭐ Overall: ${shop.overall}/10
-                    </div>
-                </div>
-            `;
-
-            // Display marker on map
-            L.marker([shop.lat, shop.lng], { icon: customIcon })
-                .addTo(map)
-                .bindPopup(popupContent);
         });
-    </script>
-</body>
-</html>
+
+        buildLeaderboard(latestReviews);
+        buildMarkers(latestReviews);
+
+    });
+
+function buildLeaderboard(reviews) {
+
+    const leaderboard = [...reviews]
+        .sort((a, b) => b.overall - a.overall)
+        .slice(0, 5);
+
+    const list = document.querySelector('.leaderboard-list');
+
+    list.innerHTML = '';
+
+    leaderboard.forEach((review, index) => {
+
+        const item = document.createElement('li');
+
+        item.className =
+            index === 0
+                ? 'leaderboard-item rank-1'
+                : 'leaderboard-item';
+
+        item.innerHTML = `
+            <span class="rank">${index + 1}</span>
+            <span class="shop-name">${review.name}</span>
+            <span class="score">
+                ${review.overall}
+                ${index === 0 ? '👑' : ''}
+            </span>
+        `;
+
+        list.appendChild(item);
+
+    });
+
+}
+
+function buildMarkers(reviews) {
+
+    const leaderScore = Math.max(
+        ...reviews.map(r => r.overall)
+    );
+
+    reviews.forEach(review => {
+
+        const borderClass =
+            review.overall === leaderScore
+                ? 'leader-gold'
+                : '';
+
+        const customIcon = L.divIcon({
+            html: `
+                <div class="marker-body marker-physics"
+                     style="position:relative;width:50px;height:100px;">
+
+                    ${review.featured_image}
+
+                    <div class="marker-overlay">
+                        <span>${review.overall}</span>
+                        <span style="
+                            width:16px;
+                            height:16px;
+                            border-radius:50%;
+                            background:#ffcc00;
+                            color:#000;
+                            text-align:center;
+                            line-height:16px;
+                            font-weight:bold;">
+                            i
+                        </span>
+                    </div>
+
+                </div>
+            `,
+            className: 'custom-marker',
+            iconSize: [50, 100],
+            iconAnchor: [25, 100]
+        });
+
+        const marker = L.marker(
+            [review.lat, review.lng],
+            { icon: customIcon }
+        ).addTo(map);
+
+        const facebookLink =
+            review.facebook_share_code
+                ? `https://www.facebook.com/share/r/${review.facebook_share_code}`
+                : '';
+
+        const popupContent = `
+            <div class="popup-card">
+
+                <h3>${review.name}</h3>
+
+                <strong>Pie:</strong>
+                ${review.pie_name}<br>
+
+                <strong>Reviewer:</strong>
+                ${review.reviewer}<br>
+
+                <strong>Review #:</strong>
+                ${review.review_no}<br>
+
+                <strong>Date:</strong>
+                ${review.review_date}<br>
+
+                <strong>Total Reviews:</strong>
+                ${review.review_count}<br>
+
+                <hr style="border:0;border-top:1px dashed #ccc;margin:8px 0;">
+
+                🥧 <strong>Crust:</strong>
+                ${review.crust}/10<br>
+
+                🥩 <strong>Filling:</strong>
+                ${review.filling}/10<br>
+
+                ✌️ <strong>Fingers Deep:</strong>
+                ${review.fingers_deep}<br>
+
+                <div class="score-tag"
+                    style="
+                        color:${review.overall >= 7
+                            ? '#2e7d32'
+                            : '#c62828'};
+                    ">
+                    ⭐ Overall: ${review.overall}/10
+                </div>
+
+                ${
+                    facebookLink
+                        ? `
+                        <p>
+                            ${facebookLink}
+                               View Facebook Review
+                            </a>
+                        </p>
+                        `
+                        : ''
+                }
+
+            </div>
+        `;
+
+        marker.bindPopup(popupContent);
+
+        const el =
+            marker._icon.querySelector('.marker-body');
+
+        marker.physics = { el };
+
+        pieShopsMarkers.push(marker);
+
+    });
+
+}
+
+let lastCenter = null;
+
+map.on("drag", () => {
+
+    const center = map.getCenter();
+
+    if (lastCenter) {
+
+        const currentPx =
+            map.latLngToContainerPoint(center);
+
+        const lastPx =
+            map.latLngToContainerPoint(lastCenter);
+
+        const dx = currentPx.x - lastPx.x;
+        const dy = currentPx.y - lastPx.y;
+
+        pieShopsMarkers.forEach(marker => {
+
+            const tilt = dx * 1.5;
+            const bob = dy * -1.5;
+
+            marker.physics.el.style.transform =
+                `translate(${tilt * 0.20}px,
+                ${Math.abs(bob) * 0.16}px)
+                rotate(${tilt * 0.8}deg)`;
+
+        });
+
+    }
+
+    lastCenter = center;
+
+});
+
+map.on("dragend", () => {
+
+    lastCenter = null;
+
+    pieShopsMarkers.forEach(marker => {
+
+        marker.physics.el.style.transform =
+            'translate(0px,0px) rotate(0deg)';
+
+    });
+
+});
+
+</script>
