@@ -34,6 +34,13 @@
             border-right: 3px solid #8B4513;
         }
 
+        .header-logo {
+            max-width: 100%;
+            max-height: 140px;
+            height: auto;
+            display: block;
+            margin: 0 auto 10px auto;
+        }
         .header-title {
             text-align: center;
             font-size: 22px;
@@ -167,6 +174,9 @@
             body { flex-direction: column; }
             #sidebar { width: 100%; height: 40vh; min-width: auto; }
             #map { height: 60vh; }
+            /* Keeps logo compact so leaderboard items fit */
+    .header-logo {
+        max-height: 65px;
         }
     </style>
 </head>
