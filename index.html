@@ -1,6 +1,202 @@
-https://unpkg.com/leaflet@1.9.4/dist/leaflet.js</script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cairns Pie Reviews</title>
 
-<script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            background: #1a1a1a;
+        }
+
+        /* Sidebar */
+        #sidebar {
+            width: 380px;
+            min-width: 320px;
+            background: #222;
+            color: #fff;
+            padding: 20px;
+            box-shadow: 4px 0 10px rgba(0,0,0,0.5);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            border-right: 3px solid #8B4513;
+        }
+
+        .header-title {
+            text-align: center;
+            font-size: 22px;
+            font-weight: 900;
+            letter-spacing: 1px;
+            color: #f5f5f5;
+            margin: 0 0 5px 0;
+            text-transform: uppercase;
+        }
+
+        .leaderboard-title {
+            text-align: center;
+            font-size: 28px;
+            font-weight: 800;
+            color: #ffcc00;
+            border-bottom: 2px dashed #444;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+        }
+
+        .leaderboard-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .leaderboard-item {
+            display: flex;
+            align-items: center;
+            background: #2b2b2b;
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 6px;
+            border-left: 5px solid #555;
+        }
+
+        .leaderboard-item.rank-1 {
+            border-left-color: #ffcc00;
+            background: #332b00;
+        }
+
+        .rank {
+            font-size: 20px;
+            font-weight: bold;
+            width: 30px;
+            text-align: center;
+            color: #ffcc00;
+        }
+
+        .shop-name {
+            flex-grow: 1;
+            font-weight: 600;
+            padding-left: 10px;
+            font-size: 15px;
+        }
+
+        .score {
+            font-size: 18px;
+            font-weight: bold;
+            color: #ffcc00;
+            padding-right: 5px;
+        }
+
+        #map {
+            flex-grow: 1;
+            height: 100vh;
+        }
+
+        .reviewer-avatar {
+            border-radius: 6px;
+            border: 2px solid white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            object-fit: cover;
+            display: block;
+        }
+
+        .leader-gold {
+            border: 3px solid gold !important;
+            box-shadow: 0 0 10px gold;
+        }
+
+        .marker-physics {
+            transform-origin: bottom center;
+            transition: transform 0.60s ease-out;
+            will-change: transform;
+        }
+
+        .marker-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 22%;
+            background: rgba(0,0,0,0.55);
+            color: #fff;
+            font-size: 12px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 2px 4px;
+            border-radius: 0 0 6px 6px;
+        }
+
+        .popup-card {
+            font-size: 14px;
+            line-height: 1.4;
+            width: 220px;
+            color: #333;
+        }
+
+        .popup-card h3 {
+            margin: 0 0 5px 0;
+            color: #8B4513;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 4px;
+            font-size: 16px;
+        }
+
+        .score-tag {
+            display: inline-block;
+            background: #f0f0f0;
+            padding: 4px 8px;
+            border-radius: 4px;
+            margin-top: 6px;
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            body { flex-direction: column; }
+            #sidebar { width: 100%; height: 40vh; min-width: auto; }
+            #map { height: 60vh; }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="sidebar">
+        <div class="header-title">Cairns Pie Reviews</div>
+        <div class="leaderboard-title">Leaderboard</div>
+
+        <ul class="leaderboard-list">
+            <li class="leaderboard-item rank-1">
+                <span class="rank">1</span>
+                <span class="shop-name">Bushman Pies</span>
+                <span class="score">7.8 👑</span>
+            </li>
+            <li class="leaderboard-item">
+                <span class="rank">2</span>
+                <span class="shop-name">Ocean World Seafood</span>
+                <span class="score">5.2</span>
+            </li>
+            <li class="leaderboard-item"><span class="rank">3</span><span class="shop-name">---</span></li>
+            <li class="leaderboard-item"><span class="rank">4</span><span class="shop-name">---</span></li>
+            <li class="leaderboard-item"><span class="rank">5</span><span class="shop-name">---</span></li>
+        </ul>
+    </div>
+
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 const map = L.map('map').setView([-16.920, 145.755], 13);
 
@@ -256,3 +452,6 @@ map.on("dragend", () => {
 });
 
 </script>
+
+</body>
+</html>
