@@ -196,7 +196,7 @@
 
     <div id="map"></div>
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"> 
 
 const map = L.map('map').setView([-16.920, 145.755], 13);
 
@@ -301,7 +301,9 @@ function buildMarkers(reviews) {
                 <div class="marker-body marker-physics"
                      style="position:relative;width:50px;height:100px;">
 
-                    ${review.featured_image}
+                    <img
+                        src="${review.featured_image}"
+                        class="reviewer-avatar ${
 
                     <div class="marker-overlay">
                         <span>${review.overall}</span>
@@ -330,10 +332,12 @@ function buildMarkers(reviews) {
             { icon: customIcon }
         ).addTo(map);
 
-        const facebookLink =
+       const facebookLink =
             review.facebook_share_code
-                ? `https://www.facebook.com/share/r/${review.facebook_share_code}`
-                : '';
+            ? `<a href="ww.facebook.com/share/r/${review.facebook_share_code}
+            View Facebook Review
+            </a>`
+            : '';
 
         const popupContent = `
             <div class="popup-card">
@@ -365,6 +369,8 @@ function buildMarkers(reviews) {
 
                 ✌️ <strong>Fingers Deep:</strong>
                 ${review.fingers_deep}<br>
+
+                ${facebookLink}<br>
 
                 <div class="score-tag"
                     style="
