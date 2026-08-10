@@ -300,24 +300,29 @@
         let lastCenter = null;
 
         map.on("drag", () => {
-            const center = map.getCenter();
+    const center = map.getCenter();
 
-            if (lastCenter) {
-                const dx = center.lng - lastCenter.lng;
-                const dy = center.lat - lastCenter.lat;
+    if (lastCenter) {
+        // Convert lat/lng coordinates to screen pixel coordinates
+        const currentPx = map.latLngToContainerPoint(center);
+        const lastPx = map.latLngToContainerPoint(lastCenter);
 
-                pieShopsMarkers.forEach(marker => {
-                    const tilt = dx * 4000;
-                    const bob = dy * -4000;
+        // Movement in actual screen pixels
+        const dx = currentPx.x - lastPx.x;
+        const dy = currentPx.y - lastPx.y;
 
-                    marker.physics.el.style.transform =
-                        `translate(${tilt * 0.20}px, ${Math.abs(bob) * 0.16}px) rotate(${tilt * 0.8}deg)`;
-                });
-            }
+        pieShopsMarkers.forEach(marker => {
+            // Smaller multipliers now, since pixel values are much larger than degree values
+            const tilt = dx * 1.5;
+            const bob = dy * -1.5;
 
-            lastCenter = center;
+            marker.physics.el.style.transform =
+                `translate(${tilt * 0.20}px, ${Math.abs(bob) * 0.16}px) rotate(${tilt * 0.8}deg)`;
         });
+    }
 
+    lastCenter = center;
+});
         map.on("dragend", () => {
             lastCenter = null;
 
