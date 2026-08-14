@@ -34,6 +34,13 @@
             border-right: 3px solid #8B4513;
         }
 
+        .header-logo {
+            max-width: 100%;
+            max-height: 140px;
+            height: auto;
+            display: block;
+            margin: 0 auto 10px auto;
+        }
         .header-title {
             text-align: center;
             font-size: 22px;
@@ -99,9 +106,59 @@
         }
 
         #map {
-            flex-grow: 1;
-            height: 100vh;
-        }
+    flex-grow: 1;
+    height: 100vh;
+    position: relative;
+}
+
+#offscreen-indicators {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 380px; /* matches sidebar width */
+    pointer-events: none;
+    z-index: 900;
+}
+
+.offscreen-indicator {
+    position: absolute;
+    width: 42px;
+    height: 42px;
+    margin-left: -21px;
+    margin-top: -21px;
+    border-radius: 50%;
+    background: rgba(255, 204, 0, 0.92);
+    border: 2px solid #333;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+    font-size: 18px;
+    font-weight: bold;
+    color: #222;
+}
+
+.offscreen-indicator .arrow {
+    display: inline-block;
+    transform-origin: center center;
+}
+
+.offscreen-indicator .count {
+    position: absolute;
+    bottom: -6px;
+    right: -6px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 4px;
+    border-radius: 10px;
+    background: #8B4513;
+    color: #fff;
+    font-size: 11px;
+    line-height: 18px;
+    text-align: center;
+    font-weight: 700;
+}
 
         .reviewer-avatar {
             border-radius: 6px;
@@ -167,170 +224,340 @@
             body { flex-direction: column; }
             #sidebar { width: 100%; height: 40vh; min-width: auto; }
             #map { height: 60vh; }
+            /* Keeps logo compact so leaderboard items fit */
+    .header-logo {
+        max-height: 65px;
         }
     </style>
 </head>
 
 <body>
 
-    <div id="sidebar">
-        <div class="header-title">Cairns Pie Reviews</div>
-        <div class="leaderboard-title">Leaderboard</div>
-
-        <ul class="leaderboard-list">
-            <li class="leaderboard-item rank-1">
-                <span class="rank">1</span>
-                <span class="shop-name">Bushman Pies</span>
-                <span class="score">7.8 👑</span>
-            </li>
-            <li class="leaderboard-item">
-                <span class="rank">2</span>
-                <span class="shop-name">Ocean World Seafood</span>
-                <span class="score">5.2</span>
-            </li>
-            <li class="leaderboard-item"><span class="rank">3</span><span class="shop-name">---</span></li>
-            <li class="leaderboard-item"><span class="rank">4</span><span class="shop-name">---</span></li>
-            <li class="leaderboard-item"><span class="rank">5</span><span class="shop-name">---</span></li>
-        </ul>
+   <div id="sidebar">
+    <div class="header-title">
+       <img src="300Logo.png" alt="cairns Pie Reviews Leaderboard" class="header-logo">
+        Cairns Pie Reviews
+    </div>
+    <div class="leaderboard-title">Leaderboard</div>
+        <ul class="leaderboard-list"></ul>
     </div>
 
     <div id="map"></div>
+    <div id="offscreen-indicators"></div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <script>
-        const map = L.map('map').setView([-16.920, 145.755], 13);
+const map = L.map('map').setView([-16.920, 145.755], 10);
 
-       L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-    subdomains: 'abcd',
-    maxZoom: 20
-}).addTo(map);
+L.tileLayer(
+    'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+    {
+        attribution:
+            '&copy; OpenStreetMap contributors &copy; CARTO',
+        subdomains: 'abcd',
+        maxZoom: 20
+    }
+).addTo(map);
 
-        const pieShops = [
-            {
-                name: "Ocean World Seafood",
-                lat: -16.903171,
-                lng: 145.757099,
-                reviewer: "Darien",
-                image: "OceanWorld",
-                fingersDeep: 3,
-                crust: 7.3,
-                filling: 3.1,
-                overall: 5.2,
-                pie: "Curried Scallop Pie"
-            },
-            {
-                name: "Bushman Pies",
-                lat: -16.938892,
-                lng: 145.754252,
-                reviewer: "Darien",
-                image: "Bushmans",
-                fingersDeep: 2,
-                crust: 7.4,
-                filling: 7.4,
-                overall: 7.8,
-                pie: "Tradies Pie"
+let pieShopsMarkers = [];
+
+fetch('reviewdata.json')
+    .then(response => response.json())
+    .then(data => {
+
+        const liveReviews = data.reviews.filter(
+            review => review.review_status === "live"
+        );
+
+        // Get latest review for each business
+        const latestReviews = [];
+
+        data.businesses.forEach(business => {
+
+            const businessReviews = liveReviews
+                .filter(r => r.business_id === business.business_id)
+                .sort(
+                    (a, b) =>
+                        new Date(b.review_date) -
+                        new Date(a.review_date)
+                );
+
+            if (businessReviews.length > 0) {
+
+                latestReviews.push({
+                    ...business,
+                    ...businessReviews[0],
+                    review_count: businessReviews.length
+                });
+
             }
-        ];
-
-        const leaderScore = Math.max(...pieShops.map(s => s.overall));
-        const pieShopsMarkers = [];
-
-        pieShops.forEach(shop => {
-            const iconUrl = `${shop.image}_${shop.reviewer}.png`;
-            const borderClass = shop.overall === leaderScore ? "leader-gold" : "";
-
-            const customIcon = L.divIcon({
-                html: `
-                    <div class="marker-body marker-physics" style="position:relative; width:50px; height:100px;">
-                        <img
-                            src="${iconUrl}"
-                            class="reviewer-avatar ${borderClass}"
-                            width="50"
-                            height="100"
-                            alt="${shop.reviewer} at ${shop.name}"
-                        >
-                        <div class="marker-overlay">
-                            <span>${shop.overall}</span>
-                            <span style="
-                                display:inline-block;
-                                width:16px;
-                                height:16px;
-                                border-radius:50%;
-                                background:#ffcc00;
-                                color:#000;
-                                font-size:11px;
-                                font-weight:900;
-                                text-align:center;
-                                line-height:16px;
-                            ">i</span>
-                        </div>
-                    </div>
-                `,
-                className: 'custom-marker',
-                iconSize: [50, 100],
-                iconAnchor: [25, 100]
-            });
-
-            const marker = L.marker([shop.lat, shop.lng], { icon: customIcon }).addTo(map);
-
-            const el = marker._icon.querySelector(".marker-body");
-            marker.physics = { el };
-            pieShopsMarkers.push(marker);
-
-            const popupContent = `
-                <div class="popup-card">
-                    <h3>${shop.name}</h3>
-                    <strong>Reviewer:</strong> ${shop.reviewer}<br>
-                    <strong>Pie:</strong> ${shop.pie}<br>
-                    <hr style="border:0; border-top:1px dashed #ccc; margin:8px 0;">
-                    🥧 <strong>Crust:</strong> ${shop.crust}/10<br>
-                    🥩 <strong>Filling:</strong> ${shop.filling}/10<br>
-                    ✌️ <strong>Fingers Deep:</strong> ${shop.fingersDeep}<br>
-                    <div class="score-tag" style="color: ${shop.overall >= 7 ? '#2e7d32' : '#c62828'}">
-                        ⭐ Overall: ${shop.overall}/10
-                    </div>
-                </div>
-            `;
-
-            marker.bindPopup(popupContent);
         });
 
-        let lastCenter = null;
+        buildLeaderboard(latestReviews);
+        buildMarkers(latestReviews);
+        updateOffscreenIndicators();
 
-        map.on("drag", () => {
+    });
+
+function updateOffscreenIndicators() {
+    const container = document.getElementById('offscreen-indicators');
+    container.innerHTML = '';
+
+    const mapSize = map.getSize();
+    const padding = 30;
+
+    pieShopsMarkers.forEach(marker => {
+        const latlng = marker.getLatLng();
+        const point = map.latLngToContainerPoint(latlng);
+
+        const isVisible =
+            point.x >= 0 &&
+            point.x <= mapSize.x &&
+            point.y >= 0 &&
+            point.y <= mapSize.y;
+
+        if (isVisible) return;
+
+        const centre = L.point(mapSize.x / 2, mapSize.y / 2);
+        const dx = point.x - centre.x;
+        const dy = point.y - centre.y;
+        const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+
+        const clampedX = Math.max(
+            padding,
+            Math.min(mapSize.x - padding, point.x)
+        );
+
+        const clampedY = Math.max(
+            padding,
+            Math.min(mapSize.y - padding, point.y)
+        );
+
+        const indicator = document.createElement('div');
+        indicator.className = 'offscreen-indicator';
+        indicator.style.left = `${clampedX}px`;
+        indicator.style.top = `${clampedY}px`;
+
+        indicator.innerHTML = `
+            <span class="arrow" style="transform: rotate(${angle + 90}deg);">▲</span>
+        `;
+
+        container.appendChild(indicator);
+    });
+}
+
+// javascript code generated by QChat
+
+
+        
+function buildLeaderboard(reviews) {
+
+    const leaderboard = [...reviews]
+        .sort((a, b) => b.overall - a.overall)
+        .slice(0, 5);
+
+    const list = document.querySelector('.leaderboard-list');
+
+    list.innerHTML = '';
+
+    leaderboard.forEach((review, index) => {
+
+        const item = document.createElement('li');
+
+        item.className =
+            index === 0
+                ? 'leaderboard-item rank-1'
+                : 'leaderboard-item';
+
+        item.innerHTML = `
+            <span class="rank">${index + 1}</span>
+            <span class="shop-name">${review.name}</span>
+            <span class="score">
+                ${review.overall}
+                ${index === 0 ? '👑' : ''}
+            </span>
+        `;
+
+        list.appendChild(item);
+
+    });
+
+}
+
+function buildMarkers(reviews) {
+
+    const leaderScore = Math.max(
+        ...reviews.map(r => r.overall)
+    );
+
+    reviews.forEach(review => {
+
+        const borderClass =
+            review.overall === leaderScore
+                ? 'leader-gold'
+                : '';
+
+        const customIcon = L.divIcon({
+            html: `
+                <div class="marker-body marker-physics ${borderClass}"
+                     style="position:relative;width:50px;height:100px;">
+
+                    <img src="${review.featured_image}" class="reviewer-avatar" style="width:100%; height:100%;">
+
+                    <div class="marker-overlay">
+                        <span>${review.overall}</span>
+                        <span style="
+                            width:16px;
+                            height:16px;
+                            border-radius:50%;
+                            background:#ffcc00;
+                            color:#000;
+                            text-align:center;
+                            line-height:16px;
+                            font-weight:bold;">
+                            i
+                        </span>
+                    </div>
+
+                </div>
+            `,
+            className: 'custom-marker',
+            iconSize: [50, 100],
+            iconAnchor: [25, 100]
+        });
+
+        const marker = L.marker(
+    [review.lat, review.lng],
+    { icon: customIcon }
+).addTo(map);
+
+marker.reviewData = review;
+
+        const facebookLink =
+            review.facebook_share_code
+                ? `https://www.facebook.com/share/r/${review.facebook_share_code}`
+                : '';
+
+        const popupContent = `
+            <div class="popup-card">
+
+                <h3>${review.name}</h3>
+
+                <strong>Pie:</strong>
+                ${review.pie_name}<br>
+
+                <strong>Reviewer:</strong>
+                ${review.reviewer}<br>
+
+                <strong>Review #:</strong>
+                ${review.review_no}<br>
+
+                <strong>Date:</strong>
+                ${review.review_date}<br>
+
+                <strong>Total Reviews:</strong>
+                ${review.review_count}<br>
+
+                <hr style="border:0;border-top:1px dashed #ccc;margin:8px 0;">
+
+                🥧 <strong>Crust:</strong>
+                ${review.crust}/10<br>
+
+                🥩 <strong>Filling:</strong>
+                ${review.filling}/10<br>
+
+                ✌️ <strong>Fingers Deep:</strong>
+                ${review.fingers_deep}<br>
+
+                <div class="score-tag"
+                    style="
+                        color:${review.overall >= 7
+                            ? '#2e7d32'
+                            : '#c62828'};
+                    ">
+                    ⭐ Overall: ${review.overall}/10
+                </div>
+
+               ${
+                    facebookLink
+                        ? `
+                        <p>
+                            <a href="${facebookLink}" target="_blank" rel="noopener noreferrer">
+                                Watch the review on fb
+                            </a>
+                        </p>
+                        `
+                        : ''
+                }
+
+            </div>
+        `;
+
+        marker.bindPopup(popupContent);
+
+        const el =
+            marker._icon.querySelector('.marker-body');
+
+        marker.physics = { el };
+
+        pieShopsMarkers.push(marker);
+
+    });
+
+}
+
+let lastCenter = null;
+        
+map.on('move zoom resize', updateOffscreenIndicators);
+        
+map.on("drag", () => {
+
     const center = map.getCenter();
 
     if (lastCenter) {
-        // Convert lat/lng coordinates to screen pixel coordinates
-        const currentPx = map.latLngToContainerPoint(center);
-        const lastPx = map.latLngToContainerPoint(lastCenter);
 
-        // Movement in actual screen pixels
+        const currentPx =
+            map.latLngToContainerPoint(center);
+
+        const lastPx =
+            map.latLngToContainerPoint(lastCenter);
+
         const dx = currentPx.x - lastPx.x;
         const dy = currentPx.y - lastPx.y;
 
         pieShopsMarkers.forEach(marker => {
-            // Smaller multipliers now, since pixel values are much larger than degree values
+
             const tilt = dx * 1.5;
             const bob = dy * -1.5;
 
             marker.physics.el.style.transform =
-                `translate(${tilt * 0.20}px, ${Math.abs(bob) * 0.16}px) rotate(${tilt * 0.8}deg)`;
+                `translate(${tilt * 0.20}px,
+                ${Math.abs(bob) * 0.16}px)
+                rotate(${tilt * 0.8}deg)`;
+
         });
+
     }
 
     lastCenter = center;
-});
-        map.on("dragend", () => {
-            lastCenter = null;
 
-            pieShopsMarkers.forEach(marker => {
-                marker.physics.el.style.transform = 'translate(0px, 0px) rotate(0deg)';
-            });
-        });
-    </script>
+});
+
+map.on("dragend", () => {
+
+    lastCenter = null;
+
+    pieShopsMarkers.forEach(marker => {
+
+        marker.physics.el.style.transform =
+            'translate(0px,0px) rotate(0deg)';
+
+    });
+
+});
+
+</script>
 
 </body>
 </html>
