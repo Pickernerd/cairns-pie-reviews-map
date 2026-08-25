@@ -64,6 +64,18 @@
       "active": true,
       "facebook_page_url": "",
       "website_url": "https://www.piccones.com.au/my-village-bakehouse"
+    },
+    {
+      "business_id": 6,
+      "slug": "bamagabakehaus",
+      "name": "Bamaga Bakehaus",
+      "address": "222 Adidi Street in Bamaga, Queensland",
+      "suburb": "Bamaga",
+      "lat": -10.8891012163,
+      "lng":  142.388141450,
+      "active": true,
+      "facebook_page_url": "",
+      "website_url": "https://www.tripadvisor.com.au/Restaurant_Review-g494980-d7803138-Reviews-Bamaga_Bakehaus-Bamaga_Cape_York_Queensland.html"
     }
   ],
   "reviews": [
