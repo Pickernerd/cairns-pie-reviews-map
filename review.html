@@ -349,9 +349,11 @@ function updateOffscreenIndicators() {
         indicator.style.left = `${clampedX}px`;
         indicator.style.top = `${clampedY}px`;
 
-        indicator.innerHTML = `
-            <span class="arrow" style="transform: rotate(${angle + 90}deg);">👇</span>
-        `;
+       indicator.innerHTML = `
+    <svg class="arrow" style="transform: rotate(${angle + 90}deg); width: 20px; height: 20px; fill: #222;" viewBox="0 0 24 24">
+        <path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/>
+    </svg>
+`;
 
         container.appendChild(indicator);
     });
