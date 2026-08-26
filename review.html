@@ -234,26 +234,28 @@
        @media (max-width: 768px) {
     body { 
         flex-direction: column; 
+        height: 100dvh; /* Uses dynamic viewport height to fit mobile screens perfectly */
     }
 
-    /* Fixed top section height with no overflow spill */
     #sidebar { 
         width: 100%; 
         height: auto;
-        max-height: 42vh; 
+        max-height: 40dvh; 
         min-width: auto; 
         padding: 10px 12px;
         border-right: none;
         border-bottom: 3px solid #8B4513;
-        overflow-y: auto; /* Scrollable if screen height is very short */
+        overflow-y: auto;
+        flex-shrink: 0; /* Prevents sidebar from squishing the map */
     }
 
     #map-wrapper { 
-        height: 58vh; 
-        flex-grow: 1;
+        height: 60dvh; 
+        flex: 1 1 auto;
+        min-height: 0; /* Allows flex child to shrink properly */
+        position: relative;
     }
 
-    /* Compact Header Layout */
     .header-logo {
         max-height: 45px;
         margin: 0 auto 4px auto;
@@ -281,7 +283,7 @@
     }
 
     .leaderboard-item {
-        flex: 0 0 140px; /* Fixed width per rank card */
+        flex: 0 0 140px;
         margin-bottom: 0;
         padding: 6px 8px;
         flex-direction: column;
@@ -379,14 +381,16 @@ fetch('reviewdata.json')
 
         buildLeaderboard(latestReviews);
         buildMarkers(latestReviews);
-        updateOffscreenIndicators();
-// Recalculate map tile bounds & indicator placement on screen resize/rotate
+          // Force Leaflet to recalculate the map size immediately after layout settles
+        setTimeout(() => {
+            map.invalidateSize();
+            updateOffscreenIndicators();
+        }, 100);
+        
         window.addEventListener('resize', () => {
             map.invalidateSize();
             updateOffscreenIndicators();
         });
-
-    });
 
 function updateOffscreenIndicators() {
     const container = document.getElementById('offscreen-indicators');
