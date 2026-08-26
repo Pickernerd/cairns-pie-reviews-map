@@ -320,17 +320,23 @@ function updateOffscreenIndicators() {
     container.innerHTML = '';
 
     const mapSize = map.getSize();
-    const padding = 30;
+    
+    // Set custom inset distances for each edge (in pixels)
+    const paddingTop = 60;    // Clears Leaflet top-left zoom controls (+/-)
+    const paddingBottom = 45; // Clears bottom-right attribution text
+    const paddingLeft = 40;   // Inset from left edge
+    const paddingRight = 40;  // Inset from right edge
 
     pieShopsMarkers.forEach(marker => {
         const latlng = marker.getLatLng();
         const point = map.latLngToContainerPoint(latlng);
 
+        // Check if visible using the expanded inset bounds
         const isVisible =
-            point.x >= 0 &&
-            point.x <= mapSize.x &&
-            point.y >= 0 &&
-            point.y <= mapSize.y;
+            point.x >= paddingLeft &&
+            point.x <= mapSize.x - paddingRight &&
+            point.y >= paddingTop &&
+            point.y <= mapSize.y - paddingBottom;
 
         if (isVisible) return;
 
@@ -339,14 +345,15 @@ function updateOffscreenIndicators() {
         const dy = point.y - centre.y;
         const angle = Math.atan2(dy, dx) * (180 / Math.PI);
 
+        // Clamp indicator coordinates within the inset boundary
         const clampedX = Math.max(
-            padding,
-            Math.min(mapSize.x - padding, point.x)
+            paddingLeft,
+            Math.min(mapSize.x - paddingRight, point.x)
         );
 
         const clampedY = Math.max(
-            padding,
-            Math.min(mapSize.y - padding, point.y)
+            paddingTop,
+            Math.min(mapSize.y - paddingBottom, point.y)
         );
 
         const indicator = document.createElement('div');
@@ -354,11 +361,11 @@ function updateOffscreenIndicators() {
         indicator.style.left = `${clampedX}px`;
         indicator.style.top = `${clampedY}px`;
 
-       indicator.innerHTML = `
-    <svg class="arrow" style="transform: rotate(${angle + 90}deg); width: 20px; height: 20px; fill: #222;" viewBox="0 0 24 24">
-        <path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/>
-    </svg>
-`;
+        indicator.innerHTML = `
+            <svg class="arrow" style="transform: rotate(${angle + 90}deg);" viewBox="0 0 24 24">
+                <path fill="#FFFFFF" d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/>
+            </svg>
+        `;
 
         container.appendChild(indicator);
     });
