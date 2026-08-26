@@ -150,8 +150,8 @@
     display: block;
     width: 22px;
     height: 22px;
-    /* High contrast drop shadow so the arrow pops on top of the golden pastry */
-    filter: drop-shadow(0px 1px 2px rgba(0, 0, 0, 0.7));
+    /* Clean outer glow/shadow so dark brown contrasts off the golden pastry top */
+    filter: drop-shadow(0px 1px 1px rgba(255, 235, 180, 0.8)) drop-shadow(0px 2px 3px rgba(0, 0, 0, 0.4));
     transform-origin: center center;
 }
 
@@ -324,7 +324,7 @@ function updateOffscreenIndicators() {
     // Set custom inset distances for each edge (in pixels)
     const paddingTop = 60;    // Clears Leaflet top-left zoom controls (+/-)
     const paddingBottom = 45; // Clears bottom-right attribution text
-    const paddingLeft = 40;   // Inset from left edge
+    const paddingLeft = 60;   // Inset from left edge
     const paddingRight = 40;  // Inset from right edge
 
     pieShopsMarkers.forEach(marker => {
@@ -362,10 +362,10 @@ function updateOffscreenIndicators() {
         indicator.style.top = `${clampedY}px`;
 
         indicator.innerHTML = `
-            <svg class="arrow" style="transform: rotate(${angle + 90}deg);" viewBox="0 0 24 24">
-                <path fill="#FFFFFF" d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/>
-            </svg>
-        `;
+    <svg class="arrow" style="transform: rotate(${angle + 90}deg);" viewBox="0 0 24 24">
+        <path fill="#2D1810" stroke="#FFF8E7" stroke-width="0.8" d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/>
+    </svg>
+`;
 
         container.appendChild(indicator);
     });
