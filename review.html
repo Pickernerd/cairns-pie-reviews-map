@@ -10,17 +10,23 @@
     <style>
         * { box-sizing: border-box; }
 
-        body {
+        html, body {
             margin: 0;
             padding: 0;
+            height: 100%;
+            width: 100%;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            display: flex;
-            height: 100vh;
-            overflow: hidden;
             background: #1a1a1a;
+            overflow: hidden;
         }
 
-        /* Sidebar */
+        body {
+            display: flex;
+            height: 100vh;
+            height: 100dvh;
+        }
+
+        /* Sidebar Desktop */
         #sidebar {
             width: 380px;
             min-width: 320px;
@@ -32,6 +38,7 @@
             display: flex;
             flex-direction: column;
             border-right: 3px solid #8B4513;
+            flex-shrink: 0;
         }
 
         .header-logo {
@@ -41,6 +48,7 @@
             display: block;
             margin: 0 auto 10px auto;
         }
+
         .header-title {
             text-align: center;
             font-size: 22px;
@@ -105,71 +113,53 @@
             padding-right: 5px;
         }
 
-    #map-wrapper {
-    position: relative;
-    flex-grow: 1;
-    height: 100vh;
-    min-width: 0;
-}
+        #map-wrapper {
+            position: relative;
+            flex-grow: 1;
+            height: 100%;
+            min-width: 0;
+            min-height: 0;
+        }
 
-#map {
-    width: 100%;
-    height: 100%;
-}
+        #map {
+            width: 100%;
+            height: 100%;
+            background: #222; /* dark base while tiles load */
+        }
 
-#offscreen-indicators {
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    pointer-events: none;
-    z-index: 900;
-}
+        #offscreen-indicators {
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: 900;
+        }
 
-.offscreen-indicator {
-    position: absolute;
-    width: 48px;
-    height: 48px;
-    margin-left: -24px;
-    margin-top: -24px;
-    border-radius: 50%;
-    
-    /* Aussie Meat Pie Palette */
-    background: radial-gradient(circle at 35% 35%, #F4A460 0%, #D2691E 55%, #8B4513 100%);
-    border: 3px dashed #654321; /* Scalloped pastry rim effect */
-    box-shadow: inset 0 2px 4px rgba(255,255,255,0.4), 0 4px 8px rgba(0,0,0,0.5);
-    
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 900;
-}
+        /* Aussie Meat Pie Indicator Styling */
+        .offscreen-indicator {
+            position: absolute;
+            width: 44px;
+            height: 44px;
+            margin-left: -22px;
+            margin-top: -22px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 35%, #F4A460 0%, #D2691E 55%, #8B4513 100%);
+            border: 3px dashed #654321;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: inset 0 2px 4px rgba(255,255,255,0.4), 0 4px 8px rgba(0,0,0,0.5);
+        }
 
-.offscreen-indicator .arrow {
-    display: block;
-    width: 22px;
-    height: 22px;
-    /* Clean outer glow/shadow so dark brown contrasts off the golden pastry top */
-    filter: drop-shadow(0px 1px 1px rgba(255, 235, 180, 0.8)) drop-shadow(0px 2px 3px rgba(0, 0, 0, 0.4));
-    transform-origin: center center;
-}
-
-.offscreen-indicator .count {
-    position: absolute;
-    bottom: -6px;
-    right: -6px;
-    min-width: 18px;
-    height: 18px;
-    padding: 0 4px;
-    border-radius: 10px;
-    background: #8B4513;
-    color: #fff;
-    font-size: 11px;
-    line-height: 18px;
-    text-align: center;
-    font-weight: 700;
-}
+        .offscreen-indicator .arrow {
+            display: block;
+            width: 20px;
+            height: 20px;
+            filter: drop-shadow(0px 1px 1px rgba(255, 235, 180, 0.8)) drop-shadow(0px 2px 3px rgba(0, 0, 0, 0.4));
+            transform-origin: center center;
+        }
 
         .reviewer-avatar {
             border-radius: 6px;
@@ -231,103 +221,101 @@
             font-weight: bold;
         }
 
-       @media (max-width: 768px) {
-    body { 
-        flex-direction: column; 
-        height: 100dvh; /* Uses dynamic viewport height to fit mobile screens perfectly */
-    }
+        /* Mobile Vertical Layout Fixes */
+        @media (max-width: 768px) {
+            body { 
+                flex-direction: column; 
+            }
 
-    #sidebar { 
-        width: 100%; 
-        height: auto;
-        max-height: 40dvh; 
-        min-width: auto; 
-        padding: 10px 12px;
-        border-right: none;
-        border-bottom: 3px solid #8B4513;
-        overflow-y: auto;
-        flex-shrink: 0; /* Prevents sidebar from squishing the map */
-    }
+            #sidebar { 
+                width: 100%; 
+                height: auto;
+                max-height: 38dvh; 
+                min-width: auto; 
+                padding: 10px 12px;
+                border-right: none;
+                border-bottom: 3px solid #8B4513;
+                overflow-y: auto;
+                flex-shrink: 0;
+            }
 
-    #map-wrapper { 
-        height: 60dvh; 
-        flex: 1 1 auto;
-        min-height: 0; /* Allows flex child to shrink properly */
-        position: relative;
-    }
+            #map-wrapper { 
+                height: 62dvh; 
+                flex: 1 1 auto;
+                min-height: 0;
+            }
 
-    .header-logo {
-        max-height: 45px;
-        margin: 0 auto 4px auto;
-    }
+            .header-logo {
+                max-height: 45px;
+                margin: 0 auto 4px auto;
+            }
 
-    .header-title {
-        font-size: 15px;
-        margin-bottom: 2px;
-    }
+            .header-title {
+                font-size: 15px;
+                margin-bottom: 2px;
+            }
 
-    .leaderboard-title {
-        font-size: 16px;
-        padding-bottom: 4px;
-        margin-bottom: 8px;
-    }
+            .leaderboard-title {
+                font-size: 16px;
+                padding-bottom: 4px;
+                margin-bottom: 8px;
+            }
 
-    /* Horizontal Scrollable Leaderboard for Mobile */
-    .leaderboard-list {
-        display: flex;
-        flex-direction: row;
-        gap: 8px;
-        overflow-x: auto;
-        padding-bottom: 6px;
-        -webkit-overflow-scrolling: touch;
-    }
+            .leaderboard-list {
+                display: flex;
+                flex-direction: row;
+                gap: 8px;
+                overflow-x: auto;
+                padding-bottom: 6px;
+                -webkit-overflow-scrolling: touch;
+            }
 
-    .leaderboard-item {
-        flex: 0 0 140px;
-        margin-bottom: 0;
-        padding: 6px 8px;
-        flex-direction: column;
-        text-align: center;
-        justify-content: center;
-    }
+            .leaderboard-item {
+                flex: 0 0 140px;
+                margin-bottom: 0;
+                padding: 6px 8px;
+                flex-direction: column;
+                text-align: center;
+                justify-content: center;
+            }
 
-    .leaderboard-item .shop-name {
-        padding-left: 0;
-        font-size: 12px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        width: 100%;
-        margin: 2px 0;
-    }
+            .leaderboard-item .shop-name {
+                padding-left: 0;
+                font-size: 12px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                width: 100%;
+                margin: 2px 0;
+            }
 
-    .rank {
-        font-size: 14px;
-        width: auto;
-    }
+            .rank {
+                font-size: 14px;
+                width: auto;
+            }
 
-    .score {
-        font-size: 14px;
-        padding-right: 0;
-    }
-}
+            .score {
+                font-size: 14px;
+                padding-right: 0;
+            }
+        }
     </style>
 </head>
 
 <body>
 
-   <div id="sidebar">
-    <div class="header-title">
-       <img src="300Logo.png" alt="cairns Pie Reviews Leaderboard" class="header-logo">
-        Cairns Pie Reviews
-    </div>
-    <div class="leaderboard-title">Leaderboard</div>
+    <div id="sidebar">
+        <div class="header-title">
+            <img src="300Logo.png" alt="cairns Pie Reviews Leaderboard" class="header-logo">
+            Cairns Pie Reviews
+        </div>
+        <div class="leaderboard-title">Leaderboard</div>
         <ul class="leaderboard-list"></ul>
     </div>
 
     <div id="map-wrapper">
-    <div id="map"></div>
-    <div id="offscreen-indicators"></div>
+        <div id="map"></div>
+        <div id="offscreen-indicators"></div>
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -338,8 +326,7 @@ const map = L.map('map').setView([-16.920, 145.755], 14);
 L.tileLayer(
     'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
     {
-        attribution:
-            '&copy; OpenStreetMap contributors &copy; CARTO',
+        attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
         subdomains: 'abcd',
         maxZoom: 20
     }
@@ -355,18 +342,13 @@ fetch('reviewdata.json')
             review => review.review_status === "live"
         );
 
-        // Get latest review for each business
         const latestReviews = [];
 
         data.businesses.forEach(business => {
 
             const businessReviews = liveReviews
                 .filter(r => r.business_id === business.business_id)
-                .sort(
-                    (a, b) =>
-                        new Date(b.review_date) -
-                        new Date(a.review_date)
-                );
+                .sort((a, b) => new Date(b.review_date) - new Date(a.review_date));
 
             if (businessReviews.length > 0) {
 
@@ -381,16 +363,20 @@ fetch('reviewdata.json')
 
         buildLeaderboard(latestReviews);
         buildMarkers(latestReviews);
-          // Force Leaflet to recalculate the map size immediately after layout settles
+
+        // Force Leaflet to recalculate tile bounds on mobile load & screen resize
         setTimeout(() => {
             map.invalidateSize();
             updateOffscreenIndicators();
-        }, 100);
-        
+        }, 150);
+
         window.addEventListener('resize', () => {
             map.invalidateSize();
             updateOffscreenIndicators();
         });
+
+    })
+    .catch(err => console.error('Error loading JSON data:', err));
 
 function updateOffscreenIndicators() {
     const container = document.getElementById('offscreen-indicators');
@@ -398,17 +384,16 @@ function updateOffscreenIndicators() {
 
     const mapSize = map.getSize();
     
-    // Set custom inset distances for each edge (in pixels)
-    const paddingTop = 60;    // Clears Leaflet top-left zoom controls (+/-)
-    const paddingBottom = 45; // Clears bottom-right attribution text
-    const paddingLeft = 60;   // Inset from left edge
-    const paddingRight = 40;  // Inset from right edge
+    // Inset paddings to avoid map controls and attributions
+    const paddingTop = 60;    
+    const paddingBottom = 45; 
+    const paddingLeft = 40;   
+    const paddingRight = 40;  
 
     pieShopsMarkers.forEach(marker => {
         const latlng = marker.getLatLng();
         const point = map.latLngToContainerPoint(latlng);
 
-        // Check if visible using the expanded inset bounds
         const isVisible =
             point.x >= paddingLeft &&
             point.x <= mapSize.x - paddingRight &&
@@ -422,7 +407,6 @@ function updateOffscreenIndicators() {
         const dy = point.y - centre.y;
         const angle = Math.atan2(dy, dx) * (180 / Math.PI);
 
-        // Clamp indicator coordinates within the inset boundary
         const clampedX = Math.max(
             paddingLeft,
             Math.min(mapSize.x - paddingRight, point.x)
@@ -439,15 +423,15 @@ function updateOffscreenIndicators() {
         indicator.style.top = `${clampedY}px`;
 
         indicator.innerHTML = `
-    <svg class="arrow" style="transform: rotate(${angle + 90}deg);" viewBox="0 0 24 24">
-        <path fill="#2D1810" stroke="#FFF8E7" stroke-width="0.8" d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/>
-    </svg>
-`;
+            <svg class="arrow" style="transform: rotate(${angle + 90}deg);" viewBox="0 0 24 24">
+                <path fill="#2D1810" stroke="#FFF8E7" stroke-width="0.8" d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/>
+            </svg>
+        `;
 
         container.appendChild(indicator);
     });
 }
-       
+        
 function buildLeaderboard(reviews) {
 
     const leaderboard = [...reviews]
@@ -525,11 +509,11 @@ function buildMarkers(reviews) {
         });
 
         const marker = L.marker(
-    [review.lat, review.lng],
-    { icon: customIcon }
-).addTo(map);
+            [review.lat, review.lng],
+            { icon: customIcon }
+        ).addTo(map);
 
-marker.reviewData = review;
+        marker.reviewData = review;
 
         const facebookLink =
             review.facebook_share_code
@@ -593,8 +577,7 @@ marker.reviewData = review;
 
         marker.bindPopup(popupContent);
 
-        const el =
-            marker._icon.querySelector('.marker-body');
+        const el = marker._icon.querySelector('.marker-body');
 
         marker.physics = { el };
 
@@ -614,11 +597,8 @@ map.on("drag", () => {
 
     if (lastCenter) {
 
-        const currentPx =
-            map.latLngToContainerPoint(center);
-
-        const lastPx =
-            map.latLngToContainerPoint(lastCenter);
+        const currentPx = map.latLngToContainerPoint(center);
+        const lastPx = map.latLngToContainerPoint(lastCenter);
 
         const dx = currentPx.x - lastPx.x;
         const dy = currentPx.y - lastPx.y;
