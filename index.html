@@ -5,22 +5,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cairns Pie Reviews</title>
 
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- MapLibre GL JS CSS -->
+    <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet" />
 
     <style>
         * { box-sizing: border-box; }
 
-        body {
+        html, body {
             margin: 0;
             padding: 0;
+            height: 100%;
+            width: 100%;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            display: flex;
-            height: 100vh;
-            overflow: hidden;
             background: #1a1a1a;
+            overflow: hidden;
         }
 
-        /* Sidebar */
+        body {
+            display: flex;
+            height: 100vh;
+            height: 100dvh;
+        }
+
+        /* Sidebar Desktop */
         #sidebar {
             width: 380px;
             min-width: 320px;
@@ -32,6 +39,7 @@
             display: flex;
             flex-direction: column;
             border-right: 3px solid #8B4513;
+            flex-shrink: 0;
         }
 
         .header-logo {
@@ -41,6 +49,7 @@
             display: block;
             margin: 0 auto 10px auto;
         }
+
         .header-title {
             text-align: center;
             font-size: 22px;
@@ -76,11 +85,23 @@
             padding: 10px;
             border-radius: 6px;
             border-left: 5px solid #555;
+            transition: transform 0.15s ease, background-color 0.15s ease;
         }
 
         .leaderboard-item.rank-1 {
             border-left-color: #ffcc00;
             background: #332b00;
+        }
+
+        .leaderboard-item:hover, 
+        .leaderboard-item:active {
+            background: #3a3a3a;
+            transform: scale(1.02);
+        }
+
+        .leaderboard-item.rank-1:hover,
+        .leaderboard-item.rank-1:active {
+            background: #443a00;
         }
 
         .rank {
@@ -105,9 +126,52 @@
             padding-right: 5px;
         }
 
-        #map {
+        #map-wrapper {
+            position: relative;
             flex-grow: 1;
-            height: 100vh;
+            height: 100%;
+            min-width: 0;
+            min-height: 0;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+            background: #1a1a1a;
+        }
+
+        #offscreen-indicators {
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: 900;
+        }
+
+        /* Aussie Meat Pie Indicator Styling */
+        .offscreen-indicator {
+            position: absolute;
+            width: 44px;
+            height: 44px;
+            margin-left: -22px;
+            margin-top: -22px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 35%, #F4A460 0%, #D2691E 55%, #8B4513 100%);
+            border: 3px dashed #654321;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: inset 0 2px 4px rgba(255,255,255,0.4), 0 4px 8px rgba(0,0,0,0.5);
+        }
+
+        .offscreen-indicator .arrow {
+            display: block;
+            width: 20px;
+            height: 20px;
+            filter: drop-shadow(0px 1px 1px rgba(255, 235, 180, 0.8)) drop-shadow(0px 2px 3px rgba(0, 0, 0, 0.4));
+            transform-origin: center center;
         }
 
         .reviewer-avatar {
@@ -146,108 +210,255 @@
             border-radius: 0 0 6px 6px;
         }
 
+        /* Dark Theme MapLibre Popup Overrides */
+        .maplibregl-popup-content {
+            background: #2b2b2b !important;
+            color: #f5f5f5 !important;
+            border: 1px solid #8B4513;
+            border-radius: 8px;
+            padding: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+        }
+
+        .maplibregl-popup-anchor-bottom .maplibregl-popup-tip {
+            border-top-color: #8B4513 !important;
+        }
+
         .popup-card {
             font-size: 14px;
             line-height: 1.4;
             width: 220px;
-            color: #333;
+            color: #e0e0e0;
         }
 
         .popup-card h3 {
             margin: 0 0 5px 0;
-            color: #8B4513;
-            border-bottom: 1px solid #ddd;
+            color: #ffcc00;
+            border-bottom: 1px solid #444;
             padding-bottom: 4px;
             font-size: 16px;
         }
 
         .score-tag {
             display: inline-block;
-            background: #f0f0f0;
+            background: #1a1a1a;
             padding: 4px 8px;
             border-radius: 4px;
             margin-top: 6px;
             font-weight: bold;
         }
 
+        /* Mobile Vertical Layout */
         @media (max-width: 768px) {
-            body { flex-direction: column; }
-            #sidebar { width: 100%; height: 40vh; min-width: auto; }
-            #map { height: 60vh; }
-            /* Keeps logo compact so leaderboard items fit */
-    .header-logo {
-        max-height: 65px;
+            body { 
+                flex-direction: column; 
+            }
+
+            #sidebar { 
+                width: 100%; 
+                height: auto;
+                max-height: 38dvh; 
+                min-width: auto; 
+                padding: 10px 12px;
+                border-right: none;
+                border-bottom: 3px solid #8B4513;
+                overflow-y: auto;
+                flex-shrink: 0;
+            }
+
+            #map-wrapper { 
+                height: 62dvh; 
+                flex: 1 1 auto;
+                min-height: 0;
+            }
+
+            .header-logo {
+                max-height: 45px;
+                margin: 0 auto 4px auto;
+            }
+
+            .header-title {
+                font-size: 15px;
+                margin-bottom: 2px;
+            }
+
+            .leaderboard-title {
+                font-size: 16px;
+                padding-bottom: 4px;
+                margin-bottom: 8px;
+            }
+
+            .leaderboard-list {
+                display: flex;
+                flex-direction: row;
+                gap: 8px;
+                overflow-x: auto;
+                padding-bottom: 6px;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .leaderboard-item {
+                flex: 0 0 140px;
+                margin-bottom: 0;
+                padding: 6px 8px;
+                flex-direction: column;
+                text-align: center;
+                justify-content: center;
+            }
+
+            .leaderboard-item .shop-name {
+                padding-left: 0;
+                font-size: 12px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                width: 100%;
+                margin: 2px 0;
+            }
+
+            .rank {
+                font-size: 14px;
+                width: auto;
+            }
+
+            .score {
+                font-size: 14px;
+                padding-right: 0;
+            }
         }
     </style>
 </head>
 
 <body>
 
-   <div id="sidebar">
-    <div class="header-title">
-       <img src="300Logo.png" alt="cairns Pie Reviews Leaderboard" class="header-logo">
-        Cairns Pie Reviews
-    </div>
-    <div class="leaderboard-title">Leaderboard</div>
+    <div id="sidebar">
+        <div class="header-title">
+            <img src="300Logo.png" alt="cairns Pie Reviews Leaderboard" class="header-logo">
+            Cairns Pie Reviews
+        </div>
+        <div class="leaderboard-title">Leaderboard</div>
         <ul class="leaderboard-list"></ul>
     </div>
 
-    <div id="map"></div>
+    <div id="map-wrapper">
+        <div id="map"></div>
+        <div id="offscreen-indicators"></div>
+    </div>
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- MapLibre GL JS Script -->
+    <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 
     <script>
-const map = L.map('map').setView([-16.920, 145.755], 10);
+const CARTO_API_KEY = 'cb1_29lv_1_701111c21d93500cf7f0cf01';
 
-L.tileLayer(
-    'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
-    {
-        attribution:
-            '&copy; OpenStreetMap contributors &copy; CARTO',
-        subdomains: 'abcd',
-        maxZoom: 20
-    }
-).addTo(map);
+// Initialize MapLibre GL JS Map using CARTO Vector Dark Matter Style
+const map = new maplibregl.Map({
+    container: 'map',
+    style: `https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json?api_key=${CARTO_API_KEY}`,
+    center: [145.755, -16.920], // MapLibre uses [lng, lat] order!
+    zoom: 13
+});
+
+// Add Navigation Controls
+map.addControl(new maplibregl.NavigationControl(), 'top-left');
 
 let pieShopsMarkers = [];
 
-fetch('reviewdata.json')
-    .then(response => response.json())
-    .then(data => {
+map.on('load', () => {
 
-        const liveReviews = data.reviews.filter(
-            review => review.review_status === "live"
+    fetch('reviewdata.json')
+        .then(response => response.json())
+        .then(data => {
+
+            const liveReviews = data.reviews.filter(
+                review => review.review_status === "live"
+            );
+
+            const latestReviews = [];
+
+            data.businesses.forEach(business => {
+
+                const businessReviews = liveReviews
+                    .filter(r => r.business_id === business.business_id)
+                    .sort((a, b) => new Date(b.review_date) - new Date(a.review_date));
+
+                if (businessReviews.length > 0) {
+
+                    latestReviews.push({
+                        ...business,
+                        ...businessReviews[0],
+                        review_count: businessReviews.length
+                    });
+
+                }
+            });
+
+            buildLeaderboard(latestReviews);
+            buildMarkers(latestReviews);
+            updateOffscreenIndicators();
+
+        })
+        .catch(err => console.error('Error loading JSON data:', err));
+
+});
+
+function updateOffscreenIndicators() {
+    const container = document.getElementById('offscreen-indicators');
+    container.innerHTML = '';
+
+    const mapCanvas = map.getCanvas();
+    const mapWidth = mapCanvas.clientWidth;
+    const mapHeight = mapCanvas.clientHeight;
+    
+    const paddingTop = 60;    
+    const paddingBottom = 50; 
+    const paddingLeft = 60;   
+    const paddingRight = 40;  
+
+    pieShopsMarkers.forEach(item => {
+        const coords = item.reviewData;
+        // MapLibre project() converts [lng, lat] to pixel container point
+        const point = map.project([coords.lng, coords.lat]);
+
+        const isVisible =
+            point.x >= paddingLeft &&
+            point.x <= mapWidth - paddingRight &&
+            point.y >= paddingTop &&
+            point.y <= mapHeight - paddingBottom;
+
+        if (isVisible) return;
+
+        const centreX = mapWidth / 2;
+        const centreY = mapHeight / 2;
+        const dx = point.x - centreX;
+        const dy = point.y - centreY;
+        const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+
+        const clampedX = Math.max(
+            paddingLeft,
+            Math.min(mapWidth - paddingRight, point.x)
         );
 
-        // Get latest review for each business
-        const latestReviews = [];
+        const clampedY = Math.max(
+            paddingTop,
+            Math.min(mapHeight - paddingBottom, point.y)
+        );
 
-        data.businesses.forEach(business => {
+        const indicator = document.createElement('div');
+        indicator.className = 'offscreen-indicator';
+        indicator.style.left = `${clampedX}px`;
+        indicator.style.top = `${clampedY}px`;
 
-            const businessReviews = liveReviews
-                .filter(r => r.business_id === business.business_id)
-                .sort(
-                    (a, b) =>
-                        new Date(b.review_date) -
-                        new Date(a.review_date)
-                );
+        indicator.innerHTML = `
+            <svg class="arrow" style="transform: rotate(${angle + 90}deg);" viewBox="0 0 24 24">
+                <path fill="#2D1810" stroke="#FFF8E7" stroke-width="0.8" d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/>
+            </svg>
+        `;
 
-            if (businessReviews.length > 0) {
-
-                latestReviews.push({
-                    ...business,
-                    ...businessReviews[0],
-                    review_count: businessReviews.length
-                });
-
-            }
-        });
-
-        buildLeaderboard(latestReviews);
-        buildMarkers(latestReviews);
-
+        container.appendChild(indicator);
     });
-
+}
+        
 function buildLeaderboard(reviews) {
 
     const leaderboard = [...reviews]
@@ -255,7 +466,6 @@ function buildLeaderboard(reviews) {
         .slice(0, 5);
 
     const list = document.querySelector('.leaderboard-list');
-
     list.innerHTML = '';
 
     leaderboard.forEach((review, index) => {
@@ -267,6 +477,8 @@ function buildLeaderboard(reviews) {
                 ? 'leaderboard-item rank-1'
                 : 'leaderboard-item';
 
+        item.style.cursor = 'pointer';
+
         item.innerHTML = `
             <span class="rank">${index + 1}</span>
             <span class="shop-name">${review.name}</span>
@@ -275,6 +487,23 @@ function buildLeaderboard(reviews) {
                 ${index === 0 ? '👑' : ''}
             </span>
         `;
+
+        // Click / Touch listener to fly map to location and toggle popup
+        item.addEventListener('click', () => {
+            const targetObj = pieShopsMarkers.find(
+                m => m.reviewData.business_id === review.business_id
+            );
+
+            if (targetObj) {
+                map.flyTo({
+                    center: [review.lng, review.lat],
+                    zoom: 15,
+                    duration: 1200
+                });
+
+                targetObj.popup.addTo(map);
+            }
+        });
 
         list.appendChild(item);
 
@@ -295,39 +524,35 @@ function buildMarkers(reviews) {
                 ? 'leader-gold'
                 : '';
 
-        const customIcon = L.divIcon({
-            html: `
-                <div class="marker-body marker-physics ${borderClass}"
-                     style="position:relative;width:50px;height:100px;">
+        // Create Custom HTML Element for MapLibre Marker
+        const el = document.createElement('div');
+        el.className = 'custom-marker';
+        el.style.width = '50px';
+        el.style.height = '100px';
 
-                    <img src="${review.featured_image}" class="reviewer-avatar" style="width:100%; height:100%;">
+        el.innerHTML = `
+            <div class="marker-body marker-physics ${borderClass}"
+                 style="position:relative;width:50px;height:100px;">
 
-                    <div class="marker-overlay">
-                        <span>${review.overall}</span>
-                        <span style="
-                            width:16px;
-                            height:16px;
-                            border-radius:50%;
-                            background:#ffcc00;
-                            color:#000;
-                            text-align:center;
-                            line-height:16px;
-                            font-weight:bold;">
-                            i
-                        </span>
-                    </div>
+                <img src="${review.featured_image}" class="reviewer-avatar" style="width:100%; height:100%;">
 
+                <div class="marker-overlay">
+                    <span>${review.overall}</span>
+                    <span style="
+                        width:16px;
+                        height:16px;
+                        border-radius:50%;
+                        background:#ffcc00;
+                        color:#000;
+                        text-align:center;
+                        line-height:16px;
+                        font-weight:bold;">
+                        i
+                    </span>
                 </div>
-            `,
-            className: 'custom-marker',
-            iconSize: [50, 100],
-            iconAnchor: [25, 100]
-        });
 
-        const marker = L.marker(
-            [review.lat, review.lng],
-            { icon: customIcon }
-        ).addTo(map);
+            </div>
+        `;
 
         const facebookLink =
             review.facebook_share_code
@@ -389,42 +614,56 @@ function buildMarkers(reviews) {
             </div>
         `;
 
-        marker.bindPopup(popupContent);
+        // Create MapLibre Popup
+        const popup = new maplibregl.Popup({ offset: [0, -90] })
+            .setHTML(popupContent);
 
-        const el =
-            marker._icon.querySelector('.marker-body');
+        // Create MapLibre Marker ([lng, lat])
+        const marker = new maplibregl.Marker({
+            element: el,
+            anchor: 'bottom'
+        })
+        .setLngLat([review.lng, review.lat])
+        .setPopup(popup)
+        .addTo(map);
 
-        marker.physics = { el };
+        const physicsEl = el.querySelector('.marker-body');
 
-        pieShopsMarkers.push(marker);
+        pieShopsMarkers.push({
+            marker: marker,
+            popup: popup,
+            reviewData: review,
+            physicsEl: physicsEl
+        });
 
     });
 
 }
 
+// Map Event Listeners for Indicators & Drag Physics
+map.on('move', updateOffscreenIndicators);
+map.on('resize', updateOffscreenIndicators);
+
 let lastCenter = null;
 
-map.on("drag", () => {
+map.on('drag', () => {
 
     const center = map.getCenter();
 
     if (lastCenter) {
 
-        const currentPx =
-            map.latLngToContainerPoint(center);
-
-        const lastPx =
-            map.latLngToContainerPoint(lastCenter);
+        const currentPx = map.project(center);
+        const lastPx = map.project(lastCenter);
 
         const dx = currentPx.x - lastPx.x;
         const dy = currentPx.y - lastPx.y;
 
-        pieShopsMarkers.forEach(marker => {
+        pieShopsMarkers.forEach(item => {
 
             const tilt = dx * 1.5;
             const bob = dy * -1.5;
 
-            marker.physics.el.style.transform =
+            item.physicsEl.style.transform =
                 `translate(${tilt * 0.20}px,
                 ${Math.abs(bob) * 0.16}px)
                 rotate(${tilt * 0.8}deg)`;
@@ -437,13 +676,13 @@ map.on("drag", () => {
 
 });
 
-map.on("dragend", () => {
+map.on('dragend', () => {
 
     lastCenter = null;
 
-    pieShopsMarkers.forEach(marker => {
+    pieShopsMarkers.forEach(item => {
 
-        marker.physics.el.style.transform =
+        item.physicsEl.style.transform =
             'translate(0px,0px) rotate(0deg)';
 
     });
