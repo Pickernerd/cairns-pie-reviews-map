@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cairns Pie Reviews</title>
 
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- MapLibre GL JS CSS -->
+    <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet" />
 
     <style>
         * { box-sizing: border-box; }
@@ -76,32 +77,31 @@
             margin: 0;
         }
 
-      .leaderboard-item {
-    display: flex;
-    align-items: center;
-    background: #2b2b2b;
-    margin-bottom: 10px;
-    padding: 10px;
-    border-radius: 6px;
-    border-left: 5px solid #555;
-    transition: transform 0.15s ease, background-color 0.15s ease;
-}
-
-/* Hover and Tap highlight effect */
-.leaderboard-item:hover, 
-.leaderboard-item:active {
-    background: #3a3a3a;
-    transform: scale(1.02);
-}
-
-.leaderboard-item.rank-1:hover,
-.leaderboard-item.rank-1:active {
-    background: #443a00;
-}
+        .leaderboard-item {
+            display: flex;
+            align-items: center;
+            background: #2b2b2b;
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 6px;
+            border-left: 5px solid #555;
+            transition: transform 0.15s ease, background-color 0.15s ease;
+        }
 
         .leaderboard-item.rank-1 {
             border-left-color: #ffcc00;
             background: #332b00;
+        }
+
+        .leaderboard-item:hover, 
+        .leaderboard-item:active {
+            background: #3a3a3a;
+            transform: scale(1.02);
+        }
+
+        .leaderboard-item.rank-1:hover,
+        .leaderboard-item.rank-1:active {
+            background: #443a00;
         }
 
         .rank {
@@ -137,7 +137,7 @@
         #map {
             width: 100%;
             height: 100%;
-            background: #222; /* dark base while tiles load */
+            background: #1a1a1a;
         }
 
         #offscreen-indicators {
@@ -210,39 +210,45 @@
             border-radius: 0 0 6px 6px;
         }
 
-        /* Dark Theme Leaflet Popup Overrides */
-.leaflet-popup-content-wrapper, .leaflet-popup-tip {
-    background: #2b2b2b !important;
-    color: #f5f5f5 !important;
-    border: 1px solid #8B4513;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.6);
-}
+        /* Dark Theme MapLibre Popup Overrides */
+        .maplibregl-popup-content {
+            background: #2b2b2b !important;
+            color: #f5f5f5 !important;
+            border: 1px solid #8B4513;
+            border-radius: 8px;
+            padding: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+        }
 
-.popup-card {
-    font-size: 14px;
-    line-height: 1.4;
-    width: 220px;
-    color: #e0e0e0;
-}
+        .maplibregl-popup-anchor-bottom .maplibregl-popup-tip {
+            border-top-color: #8B4513 !important;
+        }
 
-.popup-card h3 {
-    margin: 0 0 5px 0;
-    color: #ffcc00;
-    border-bottom: 1px solid #444;
-    padding-bottom: 4px;
-    font-size: 16px;
-}
+        .popup-card {
+            font-size: 14px;
+            line-height: 1.4;
+            width: 220px;
+            color: #e0e0e0;
+        }
 
-.score-tag {
-    display: inline-block;
-    background: #1a1a1a;
-    padding: 4px 8px;
-    border-radius: 4px;
-    margin-top: 6px;
-    font-weight: bold;
-}
+        .popup-card h3 {
+            margin: 0 0 5px 0;
+            color: #ffcc00;
+            border-bottom: 1px solid #444;
+            padding-bottom: 4px;
+            font-size: 16px;
+        }
 
-        /* Mobile Vertical Layout Fixes */
+        .score-tag {
+            display: inline-block;
+            background: #1a1a1a;
+            padding: 4px 8px;
+            border-radius: 4px;
+            margin-top: 6px;
+            font-weight: bold;
+        }
+
+        /* Mobile Vertical Layout */
         @media (max-width: 768px) {
             body { 
                 flex-direction: column; 
@@ -339,103 +345,103 @@
         <div id="offscreen-indicators"></div>
     </div>
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- MapLibre GL JS Script -->
+    <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 
     <script>
-const map = L.map('map').setView([-16.920, 145.755], 14);
+const CARTO_API_KEY = 'YOUR_CARTO_API_KEY';
 
-L.tileLayer(
-    'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png?api_key=cb1_29lv_1_701111c21d93500cf7f0cf01',
-    {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-        subdomains: 'abcd',
-        maxZoom: 20
-    }
-).addTo(map);
+// Initialize MapLibre GL JS Map using CARTO Vector Dark Matter Style
+const map = new maplibregl.Map({
+    container: 'map',
+    style: `https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json?api_key=${CARTO_API_KEY}`,
+    center: [145.755, -16.920], // MapLibre uses [lng, lat] order!
+    zoom: 13
+});
+
+// Add Navigation Controls
+map.addControl(new maplibregl.NavigationControl(), 'top-left');
 
 let pieShopsMarkers = [];
 
-fetch('reviewdata.json')
-    .then(response => response.json())
-    .then(data => {
+map.on('load', () => {
 
-        const liveReviews = data.reviews.filter(
-            review => review.review_status === "live"
-        );
+    fetch('reviewdata.json')
+        .then(response => response.json())
+        .then(data => {
 
-        const latestReviews = [];
+            const liveReviews = data.reviews.filter(
+                review => review.review_status === "live"
+            );
 
-        data.businesses.forEach(business => {
+            const latestReviews = [];
 
-            const businessReviews = liveReviews
-                .filter(r => r.business_id === business.business_id)
-                .sort((a, b) => new Date(b.review_date) - new Date(a.review_date));
+            data.businesses.forEach(business => {
 
-            if (businessReviews.length > 0) {
+                const businessReviews = liveReviews
+                    .filter(r => r.business_id === business.business_id)
+                    .sort((a, b) => new Date(b.review_date) - new Date(a.review_date));
 
-                latestReviews.push({
-                    ...business,
-                    ...businessReviews[0],
-                    review_count: businessReviews.length
-                });
+                if (businessReviews.length > 0) {
 
-            }
-        });
+                    latestReviews.push({
+                        ...business,
+                        ...businessReviews[0],
+                        review_count: businessReviews.length
+                    });
 
-        buildLeaderboard(latestReviews);
-        buildMarkers(latestReviews);
+                }
+            });
 
-        // Force Leaflet to recalculate tile bounds on mobile load & screen resize
-        setTimeout(() => {
-            map.invalidateSize();
+            buildLeaderboard(latestReviews);
+            buildMarkers(latestReviews);
             updateOffscreenIndicators();
-        }, 150);
 
-        window.addEventListener('resize', () => {
-            map.invalidateSize();
-            updateOffscreenIndicators();
-        });
+        })
+        .catch(err => console.error('Error loading JSON data:', err));
 
-    })
-    .catch(err => console.error('Error loading JSON data:', err));
+});
 
 function updateOffscreenIndicators() {
     const container = document.getElementById('offscreen-indicators');
     container.innerHTML = '';
 
-    const mapSize = map.getSize();
+    const mapCanvas = map.getCanvas();
+    const mapWidth = mapCanvas.clientWidth;
+    const mapHeight = mapCanvas.clientHeight;
     
-    // Inset paddings to avoid map controls and attributions
     const paddingTop = 60;    
     const paddingBottom = 45; 
     const paddingLeft = 40;   
     const paddingRight = 40;  
 
-    pieShopsMarkers.forEach(marker => {
-        const latlng = marker.getLatLng();
-        const point = map.latLngToContainerPoint(latlng);
+    pieShopsMarkers.forEach(item => {
+        const coords = item.reviewData;
+        // MapLibre project() converts [lng, lat] to pixel container point
+        const point = map.project([coords.lng, coords.lat]);
 
         const isVisible =
             point.x >= paddingLeft &&
-            point.x <= mapSize.x - paddingRight &&
+            point.x <= mapWidth - paddingRight &&
             point.y >= paddingTop &&
-            point.y <= mapSize.y - paddingBottom;
+            point.y <= mapHeight - paddingBottom;
 
         if (isVisible) return;
 
-        const centre = L.point(mapSize.x / 2, mapSize.y / 2);
-        const dx = point.x - centre.x;
-        const dy = point.y - centre.y;
+        const centreX = mapWidth / 2;
+        const centreY = mapHeight / 2;
+        const dx = point.x - centreX;
+        const dy = point.y - centreY;
         const angle = Math.atan2(dy, dx) * (180 / Math.PI);
 
         const clampedX = Math.max(
             paddingLeft,
-            Math.min(mapSize.x - paddingRight, point.x)
+            Math.min(mapWidth - paddingRight, point.x)
         );
 
         const clampedY = Math.max(
             paddingTop,
-            Math.min(mapSize.y - paddingBottom, point.y)
+            Math.min(mapHeight - paddingBottom, point.y)
         );
 
         const indicator = document.createElement('div');
@@ -471,7 +477,6 @@ function buildLeaderboard(reviews) {
                 ? 'leaderboard-item rank-1'
                 : 'leaderboard-item';
 
-        // Make the item clearly clickable
         item.style.cursor = 'pointer';
 
         item.innerHTML = `
@@ -483,21 +488,20 @@ function buildLeaderboard(reviews) {
             </span>
         `;
 
-        // Click / Touch listener to center map and open popup
+        // Click / Touch listener to fly map to location and toggle popup
         item.addEventListener('click', () => {
-            const targetMarker = pieShopsMarkers.find(
+            const targetObj = pieShopsMarkers.find(
                 m => m.reviewData.business_id === review.business_id
             );
 
-            if (targetMarker) {
-                // Smoothly center the map on the shop location
-                map.flyTo(targetMarker.getLatLng(), 15, {
-                    animate: true,
-                    duration: 1.2
+            if (targetObj) {
+                map.flyTo({
+                    center: [review.lng, review.lat],
+                    zoom: 15,
+                    duration: 1200
                 });
 
-                // Open the review popup once zoomed in
-                targetMarker.openPopup();
+                targetObj.popup.addTo(map);
             }
         });
 
@@ -520,41 +524,35 @@ function buildMarkers(reviews) {
                 ? 'leader-gold'
                 : '';
 
-        const customIcon = L.divIcon({
-            html: `
-                <div class="marker-body marker-physics ${borderClass}"
-                     style="position:relative;width:50px;height:100px;">
+        // Create Custom HTML Element for MapLibre Marker
+        const el = document.createElement('div');
+        el.className = 'custom-marker';
+        el.style.width = '50px';
+        el.style.height = '100px';
 
-                    <img src="${review.featured_image}" class="reviewer-avatar" style="width:100%; height:100%;">
+        el.innerHTML = `
+            <div class="marker-body marker-physics ${borderClass}"
+                 style="position:relative;width:50px;height:100px;">
 
-                    <div class="marker-overlay">
-                        <span>${review.overall}</span>
-                        <span style="
-                            width:16px;
-                            height:16px;
-                            border-radius:50%;
-                            background:#ffcc00;
-                            color:#000;
-                            text-align:center;
-                            line-height:16px;
-                            font-weight:bold;">
-                            i
-                        </span>
-                    </div>
+                <img src="${review.featured_image}" class="reviewer-avatar" style="width:100%; height:100%;">
 
+                <div class="marker-overlay">
+                    <span>${review.overall}</span>
+                    <span style="
+                        width:16px;
+                        height:16px;
+                        border-radius:50%;
+                        background:#ffcc00;
+                        color:#000;
+                        text-align:center;
+                        line-height:16px;
+                        font-weight:bold;">
+                        i
+                    </span>
                 </div>
-            `,
-            className: 'custom-marker',
-            iconSize: [50, 100],
-            iconAnchor: [25, 100]
-        });
 
-        const marker = L.marker(
-            [review.lat, review.lng],
-            { icon: customIcon }
-        ).addTo(map);
-
-        marker.reviewData = review;
+            </div>
+        `;
 
         const facebookLink =
             review.facebook_share_code
@@ -616,40 +614,56 @@ function buildMarkers(reviews) {
             </div>
         `;
 
-        marker.bindPopup(popupContent);
+        // Create MapLibre Popup
+        const popup = new maplibregl.Popup({ offset: [0, -90] })
+            .setHTML(popupContent);
 
-        const el = marker._icon.querySelector('.marker-body');
+        // Create MapLibre Marker ([lng, lat])
+        const marker = new maplibregl.Marker({
+            element: el,
+            anchor: 'bottom'
+        })
+        .setLngLat([review.lng, review.lat])
+        .setPopup(popup)
+        .addTo(map);
 
-        marker.physics = { el };
+        const physicsEl = el.querySelector('.marker-body');
 
-        pieShopsMarkers.push(marker);
+        pieShopsMarkers.push({
+            marker: marker,
+            popup: popup,
+            reviewData: review,
+            physicsEl: physicsEl
+        });
 
     });
 
 }
 
+// Map Event Listeners for Indicators & Drag Physics
+map.on('move', updateOffscreenIndicators);
+map.on('resize', updateOffscreenIndicators);
+
 let lastCenter = null;
-        
-map.on('move zoom resize', updateOffscreenIndicators);
-        
-map.on("drag", () => {
+
+map.on('drag', () => {
 
     const center = map.getCenter();
 
     if (lastCenter) {
 
-        const currentPx = map.latLngToContainerPoint(center);
-        const lastPx = map.latLngToContainerPoint(lastCenter);
+        const currentPx = map.project(center);
+        const lastPx = map.project(lastCenter);
 
         const dx = currentPx.x - lastPx.x;
         const dy = currentPx.y - lastPx.y;
 
-        pieShopsMarkers.forEach(marker => {
+        pieShopsMarkers.forEach(item => {
 
             const tilt = dx * 1.5;
             const bob = dy * -1.5;
 
-            marker.physics.el.style.transform =
+            item.physicsEl.style.transform =
                 `translate(${tilt * 0.20}px,
                 ${Math.abs(bob) * 0.16}px)
                 rotate(${tilt * 0.8}deg)`;
@@ -662,13 +676,13 @@ map.on("drag", () => {
 
 });
 
-map.on("dragend", () => {
+map.on('dragend', () => {
 
     lastCenter = null;
 
-    pieShopsMarkers.forEach(marker => {
+    pieShopsMarkers.forEach(item => {
 
-        marker.physics.el.style.transform =
+        item.physicsEl.style.transform =
             'translate(0px,0px) rotate(0deg)';
 
     });
