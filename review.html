@@ -76,15 +76,28 @@
             margin: 0;
         }
 
-        .leaderboard-item {
-            display: flex;
-            align-items: center;
-            background: #2b2b2b;
-            margin-bottom: 10px;
-            padding: 10px;
-            border-radius: 6px;
-            border-left: 5px solid #555;
-        }
+      .leaderboard-item {
+    display: flex;
+    align-items: center;
+    background: #2b2b2b;
+    margin-bottom: 10px;
+    padding: 10px;
+    border-radius: 6px;
+    border-left: 5px solid #555;
+    transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+/* Hover and Tap highlight effect */
+.leaderboard-item:hover, 
+.leaderboard-item:active {
+    background: #3a3a3a;
+    transform: scale(1.02);
+}
+
+.leaderboard-item.rank-1:hover,
+.leaderboard-item.rank-1:active {
+    background: #443a00;
+}
 
         .leaderboard-item.rank-1 {
             border-left-color: #ffcc00;
@@ -439,7 +452,6 @@ function buildLeaderboard(reviews) {
         .slice(0, 5);
 
     const list = document.querySelector('.leaderboard-list');
-
     list.innerHTML = '';
 
     leaderboard.forEach((review, index) => {
@@ -451,6 +463,9 @@ function buildLeaderboard(reviews) {
                 ? 'leaderboard-item rank-1'
                 : 'leaderboard-item';
 
+        // Make the item clearly clickable
+        item.style.cursor = 'pointer';
+
         item.innerHTML = `
             <span class="rank">${index + 1}</span>
             <span class="shop-name">${review.name}</span>
@@ -459,6 +474,24 @@ function buildLeaderboard(reviews) {
                 ${index === 0 ? '👑' : ''}
             </span>
         `;
+
+        // Click / Touch listener to center map and open popup
+        item.addEventListener('click', () => {
+            const targetMarker = pieShopsMarkers.find(
+                m => m.reviewData.business_id === review.business_id
+            );
+
+            if (targetMarker) {
+                // Smoothly center the map on the shop location
+                map.flyTo(targetMarker.getLatLng(), 15, {
+                    animate: true,
+                    duration: 1.2
+                });
+
+                // Open the review popup once zoomed in
+                targetMarker.openPopup();
+            }
+        });
 
         list.appendChild(item);
 
