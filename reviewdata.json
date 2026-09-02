@@ -67,15 +67,27 @@
     },
     {
       "business_id": 6,
-      "slug": "bamagabakehaus",
-      "name": "Bamaga Bakehaus",
-      "address": "222 Adidi Street in Bamaga, Queensland",
-      "suburb": "Bamaga",
-      "lat": -10.8891012163,
-      "lng":  142.388141450,
+      "slug": "frenchiespatisserie",
+      "name": "Frenchie's Patisserie",
+      "address": "Rusty's Markets, Grafton St, Cairns City",
+      "suburb": "Cairns City",
+      "lat": -16.9244592874795,
+      "lng":  145.77461044631744,
       "active": true,
       "facebook_page_url": "",
-      "website_url": "https://www.tripadvisor.com.au/Restaurant_Review-g494980-d7803138-Reviews-Bamaga_Bakehaus-Bamaga_Cape_York_Queensland.html"
+      "website_url": ""
+    },
+    {
+      "business_id": 7,
+      "slug": "manningspies",
+      "name": "Mannings Pies",
+      "address": "194-196 newell Street, Bungalow, Cairns",
+      "suburb": "Bungalow",
+      "lat": -16.937723,
+      "lng":  145.750772,
+      "active": true,
+      "facebook_page_url": "https://www.facebook.com/share/19Wb1s5khr",
+      "website_url": ""
     }
   ],
   "reviews": [
@@ -190,6 +202,54 @@
       "tags": [
         "Steak",
         "Beef",
+        "Cheese"
+      ],
+      "created_at": "2026-08-22T00:30:00Z",
+      "updated_at": "2026-08-22T00:30:00Z"
+    },
+    {
+      "review_no": 6,
+      "business_id": 6,
+      "review_status": "live",
+      "review_type": "initial",
+      "review_date": "2026-08-31",
+      "reviewer": "Darien",
+      "pie_name": "Steak, Bacon and Cheese",
+      "crust": 6.4,
+      "filling": 6.4,
+      "fingers_deep": 2.50,
+      "overall": 6.4,
+      "notes": "Not a high leaderboard contender",
+      "featured_image": "Darien_frenchies.png",
+      "facebook_share_code": "1bi5Zt6kuq",
+      "facebook_views": 0,
+      "tags": [
+        "Steak",
+        "Bacon",
+        "Cheese"
+      ],
+      "created_at": "2026-08-22T00:30:00Z",
+      "updated_at": "2026-08-22T00:30:00Z"
+    },
+    {
+      "review_no": 7,
+      "business_id": 7,
+      "review_status": "live",
+      "review_type": "initial",
+      "review_date": "2026-09-02",
+      "reviewer": "Local legend James farley-Smith and Darien",
+      "pie_name": "Steak, Bacon and Cheese",
+      "crust": 6.5,
+      "filling": 87.3,
+      "fingers_deep": 2.00,
+      "overall": 7.3,
+      "notes": "Old school pie",
+      "featured_image": "locallegend_mannings.png",
+      "facebook_share_code": "1PjnTuQ5ZG",
+      "facebook_views": 0,
+      "tags": [
+        "Steak",
+        "Bacon",
         "Cheese"
       ],
       "created_at": "2026-08-22T00:30:00Z",
