@@ -366,6 +366,7 @@ const map = new maplibregl.Map({
     container: 'map',
     style: `https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json?api_key=${CARTO_API_KEY}`,
     center: [145.755, -16.920], // MapLibre uses [lng, lat] order!
+    pitch: 45,                  // Adds a 45-degree initial tilt (0 to 85)
     zoom: 13
 });
 
