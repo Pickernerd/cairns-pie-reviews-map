@@ -88,6 +88,18 @@
       "active": true,
       "facebook_page_url": "https://www.facebook.com/share/19Wb1s5khr",
       "website_url": ""
+    },
+    {
+      "business_id": 8,
+      "slug": "BanjosBakeryEdmonton",
+      "name": "Banjos Bakery, Edmonton",
+      "address": "6/8 Mill Rd, Edmonton QLD 4869",
+      "suburb": "Edmonton",
+      "lat": -17.018656347541977, 
+      "lng":  145.7435061999837,
+      "active": true,
+      "facebook_page_url": "",
+      "website_url": ""
     }
   ],
   "reviews": [
@@ -240,7 +252,7 @@
       "reviewer": "Local legend James farley-Smith and Darien",
       "pie_name": "Steak, Bacon and Cheese",
       "crust": 6.5,
-      "filling": 87.3,
+      "filling": 7.3,
       "fingers_deep": 2.00,
       "overall": 7.3,
       "notes": "Old school pie",
@@ -254,6 +266,30 @@
       ],
       "created_at": "2026-08-22T00:30:00Z",
       "updated_at": "2026-08-22T00:30:00Z"
+    },
+    {
+      "review_no": 8,
+      "business_id": 8,
+      "review_status": "live",
+      "review_type": "initial",
+      "review_date": "2026-09-10",
+      "reviewer": "Darien",
+      "pie_name": "Steak, Bacon and Cheese",
+      "crust": 6.0,
+      "filling": 6.4,
+      "fingers_deep": 2.5,
+      "overall": 6.2,
+      "notes": "",
+      "featured_image": "BanjosDarien.png",
+      "facebook_share_code": "1HjPhfTkpp",
+      "facebook_views": 0,
+      "tags": [
+        "Steak",
+        "Bacon",
+        "Cheese"
+      ],
+      "created_at": "2026-09-10T00:30:00Z",
+      "updated_at": "2026-09-10T00:30:00Z"
     }
   ]
 }
